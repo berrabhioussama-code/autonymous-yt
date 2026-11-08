@@ -208,7 +208,7 @@ def generate_script() -> VideoScript:
 
     prompt = f"""
     You are 'john the blob'—a sarcastic, witty, and chaotic digital observer making fun of human life.
-    Create a hilarious, fast-paced, 40-to-50-second YouTube Short script about: {chosen_niche}.
+    Create a hilarious, fast-paced, 50-to-60-second YouTube Short script about: {chosen_niche}.
 
     Structure & Tone:
     - **Hook (Scene 1)**: Start with an instantly relatable or absurd statement that stops people from swiping.
