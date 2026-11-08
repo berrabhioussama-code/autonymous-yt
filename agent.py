@@ -1,4 +1,5 @@
 import os
+import time
 import random
 import urllib.parse
 import requests
@@ -39,16 +40,32 @@ def generate_script() -> VideoScript:
     - 'video_search_query': 1-2 broad English keywords to find a matching stock video on Pixabay (e.g., 'galaxy', 'ocean', 'brain', 'technology', 'nature').
     """
     
-    response = client.models.generate_content(
-        model="gemini-3.8-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=VideoScript,
-            temperature=0.9,
-        ),
-    )
-    return VideoScript.model_validate_json(response.text)
+    # Fallback model list in case the primary model has a 503 high-demand spike
+    models_to_try = [
+        "gemini-3.8-flash",
+        "gemini-3.8-flash-lite",
+        "gemini-3.8-pro"
+    ]
+    
+    for attempt in range(3):
+        for model_name in models_to_try:
+            try:
+                print(f"Requesting script from {model_name} (Attempt {attempt + 1})...")
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=VideoScript,
+                        temperature=0.9,
+                    ),
+                )
+                return VideoScript.model_validate_json(response.text)
+            except Exception as e:
+                print(f"Warning: {model_name} returned an error: {e}")
+                time.sleep(5)
+                
+    raise RuntimeError("All Gemini models were temporarily unavailable after multiple retries.")
 
 def generate_voiceover(text: str, filename: str):
     url = "https://api.fish.audio/v1/tts"
