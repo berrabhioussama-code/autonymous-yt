@@ -1,0 +1,13 @@
+google-genai
+requests
+moviepy==1.0.3
+decorator
+imageio
+imageio-ffmpeg
+numpy
+Pillow==9.5.0
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+pydantic
