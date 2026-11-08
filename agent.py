@@ -161,6 +161,8 @@ def ask_gemini(client, model_name: str, prompt: str) -> VideoScript:
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=VideoScript,
+            temperature=1.0,  # Maximizes creativity and prevents repetitive scripts
+            top_p=0.95,
         ),
     )
     if not response.text:
@@ -175,17 +177,22 @@ def generate_script() -> VideoScript:
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
     niches = [
-        "absurd shower thoughts that make zero sense",
-        "relatable awkward moments everyone pretends didn't happen",
-        "terrible life hacks that will ruin your day",
-        "roasting everyday human behavior",
-        "why being a blob is better than paying taxes"
+        "absurd shower thoughts that make zero sense about modern technology",
+        "relatable awkward social interactions everyone hides from",
+        "terrible life hacks that sound brilliant until you try them",
+        "roasting human habits through the eyes of an alien visitor",
+        "why being a digital blob is vastly superior to having a 9-to-5 job",
+        "unspoken rules of public transit that everyone silently breaks",
+        "existential dread experienced by inanimate household objects",
+        "the secret psychology of why humans reply 'sounds good' when they are dying inside"
     ]
     chosen_niche = random.choice(niches)
+    random_seed_trigger = f"Random seed: {random.randint(1000, 999999)}"
 
     prompt = f"""
+    {random_seed_trigger}
     You are 'john the blob'—a sarcastic, witty, and chaotic digital observer making fun of human life.
-    Create a hilarious, fast-paced, exact **55-to-60-second** YouTube Short comedy script about: {chosen_niche}.
+    Create a hilarious, highly original, completely unique, exact **55-to-60-second** YouTube Short comedy script about: {chosen_niche}.
 
     Structure & Length Requirements:
     - **Massive Hook (Scene 1)**: The very first sentence must be an explosive, shocking, or deeply relatable hook that immediately stops the user from swiping away in the first 3 seconds.
@@ -214,7 +221,7 @@ def generate_script() -> VideoScript:
             print(f"Tentative {attempt + 1} avec le modèle {model_name}...")
             try:
                 script = ask_gemini(client, model_name, prompt)
-                print("Script 60s avec Hook & CTA généré avec succès par Gemini !")
+                print("Script 60s unique généré avec succès par Gemini !")
                 return script
             except Exception as e:
                 msg = str(e)
