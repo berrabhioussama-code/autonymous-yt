@@ -1,5 +1,5 @@
 """
-YouTube Shorts agent - Comedy / Absurdist Humor Edition with Background Music (60s)
+YouTube Shorts agent - Comedy / Absurdist Humor with Strong Hooks, Call-to-Action & Music (60s)
 Gemini (script) -> Fish Audio (voice-over) -> Pixabay (footage & music) -> MoviePy (render) -> YouTube (upload)
 """
 import os
@@ -109,7 +109,7 @@ def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuse
 
 
 # ---------------------------------------------------------------------------
-# 1. Script (Gemini) — 60-Second Comedy Script
+# 1. Script (Gemini) — 60-Second Comedy Script with Hook & Subscribe CTA
 # ---------------------------------------------------------------------------
 class Scene(BaseModel):
     narration: str
@@ -188,9 +188,10 @@ def generate_script() -> VideoScript:
     Create a hilarious, fast-paced, exact **55-to-60-second** YouTube Short comedy script about: {chosen_niche}.
 
     Structure & Length Requirements:
-    - **Total Length**: Must be long enough to span ~55 to 60 seconds when spoken at a punchy comedic pace.
-    - **Scenes**: Provide exactly **8 to 9 scenes** so the video has enough visual pacing for a full minute.
-    - **Tone**: Dry humor, sarcastic, self-aware, absurdist comedy. Zero motivational clichés.
+    - **Massive Hook (Scene 1)**: The very first sentence must be an explosive, shocking, or deeply relatable hook that immediately stops the user from swiping away in the first 3 seconds.
+    - **Body (Scenes 2 to 7)**: Build sharp, deadpan humor, ironies of modern life, and comedic observations.
+    - **Outro / Call-to-Action (Final Scene)**: End with a witty final joke and a seamless, funny reminder to like and subscribe to john the blob so they don't miss out on more human roasting.
+    - **Total Length & Scenes**: Provide exactly **8 to 9 scenes** so the video spans a full minute.
 
     Provide a viral title (under 70 characters, include #shorts), SEO description, 5 tags, and exactly 8 to 9 scenes.
 
@@ -213,7 +214,7 @@ def generate_script() -> VideoScript:
             print(f"Tentative {attempt + 1} avec le modèle {model_name}...")
             try:
                 script = ask_gemini(client, model_name, prompt)
-                print("Script 60s généré avec succès par Gemini !")
+                print("Script 60s avec Hook & CTA généré avec succès par Gemini !")
                 return script
             except Exception as e:
                 msg = str(e)
@@ -298,7 +299,6 @@ def download_pixabay_video(query: str, filename: str, used_ids: set):
 
 
 def download_funny_music(filename: str):
-    """Télécharge une musique de fond rigolote/comique depuis Pixabay Audio ou utilise un fallback."""
     print("Téléchargement de la musique de fond comique...")
     api_key = env("PIXABAY_API_KEY")
     url = f"https://pixabay.com/api/audio/?key={api_key}&q=funny+comedy+quirky&per_page=10"
@@ -342,7 +342,6 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
     has_music = False
 
     try:
-        # Télécharger la musique de fond
         if download_funny_music(music_path):
             temp_files.append(music_path)
             has_music = True
@@ -375,20 +374,15 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
         voice_track = concatenate_videoclips(clips, method="chain")
         to_close.append(voice_track)
 
-        # Mixer la musique de fond si elle a été téléchargée
         if has_music:
             bg_music = AudioFileClip(music_path)
             to_close.append(bg_music)
-            # Boucler la musique pour qu'elle corresponde à la durée totale de la vidéo
             if bg_music.duration < voice_track.duration:
                 bg_music = bg_music.loop(duration=voice_track.duration)
             else:
                 bg_music = mp(bg_music, "subclipped", "subclip", 0, voice_track.duration)
             
-            # Baisser le volume de la musique à 15% (0.15) pour qu'on entend bien la voix off par-dessus
             bg_music = bg_music.volumex(0.15)
-            
-            # Combiner la voix off et la musique de fond
             final_audio = CompositeAudioClip([voice_track.audio, bg_music])
             voice_track = mp(voice_track, "with_audio", "set_audio", final_audio)
 
