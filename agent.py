@@ -1,5 +1,5 @@
 """
-YouTube Shorts agent
+YouTube Shorts agent - Comedy / Absurdist Humor Edition for "john the blob"
 Gemini (script) -> Fish Audio (voice-over) -> Pixabay (footage) -> MoviePy (render) -> YouTube (upload)
 """
 import os
@@ -38,8 +38,6 @@ print("DEBUG: Bibliothèques chargées avec succès.")
 # ---------------------------------------------------------------------------
 # Settings
 # ---------------------------------------------------------------------------
-# Newest first. Override without editing the code: GEMINI_MODELS="model-a,model-b"
-# (Per Google's docs there is no gemini-3.8-flash-lite text model; the latest Flash-Lite is 3.5.)
 GEMINI_MODELS = [m.strip() for m in os.environ.get("GEMINI_MODELS", "").split(",") if m.strip()] or [
     "gemini-3.8-flash",
     "gemini-3.6-flash",
@@ -55,7 +53,7 @@ if YT_PRIVACY not in ("public", "unlisted", "private"):
     YT_PRIVACY = "public"
 
 OUT_W, OUT_H = 1080, 1920
-FALLBACK_QUERIES = ["motivation", "gym workout", "running", "sunrise", "city"]
+FALLBACK_QUERIES = ["glitch art abstract", "confused person looking at phone", "weird abstract animation", "cat staring blankly"]
 
 
 # ---------------------------------------------------------------------------
@@ -114,7 +112,7 @@ def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuse
 
 
 # ---------------------------------------------------------------------------
-# 1. Script (Gemini) — never gives up
+# 1. Script (Gemini) — Comedy & Absurdist Humor for "john the blob"
 # ---------------------------------------------------------------------------
 class Scene(BaseModel):
     narration: str
@@ -128,30 +126,27 @@ class VideoScript(BaseModel):
     scenes: list[Scene]
 
 
-# Errors that no amount of retrying will fix: stop and say why instead of looping forever.
 FATAL_GEMINI = ("api_key_invalid", "api key not valid", "api key expired", "reported as leaked",
                 "service_disabled", "unauthenticated")
 
 
 def suggested_delay(message: str) -> float:
-    """Gemini 429s say how long to wait ('Please retry in 34s' / retryDelay: '34s')."""
     m = re.search(r"retry(?:Delay)?['\"]?(?:\s+in|:)?\s*['\"]?(\d+(?:\.\d+)?)s", message, re.I)
     return min(float(m.group(1)), 120.0) if m else 0.0
 
 
 def check_script(script: VideoScript) -> VideoScript:
-    """Repair or reject unusable answers, so a bad answer is retried instead of crashing the render/upload."""
     script.scenes = [s for s in script.scenes if s.narration.strip() and s.video_search_query.strip()]
     if len(script.scenes) < 2:
         raise ValueError(f"script inutilisable ({len(script.scenes)} scène(s) valide(s))")
 
-    title = re.sub(r"[<>]", "", script.title).strip() or "Daily motivation"
+    title = re.sub(r"[<>]", "", script.title).strip() or "john the blob thoughts"
     if "#shorts" not in title.lower():
         title = f"{title[:90].rstrip()} #shorts"
-    script.title = title[:100]  # YouTube limit
+    script.title = title[:100]
     script.description = re.sub(r"[<>]", "", script.description).strip()
 
-    tags, seen, total = [], set(), 0  # YouTube rejects bad tags (<>, > 500 chars in total)
+    tags, seen, total = [], set(), 0
     for tag in script.tags:
         tag = re.sub(r"[<>#]", "", tag).strip()
         if tag and tag.lower() not in seen and total + len(tag) <= 400:
@@ -166,7 +161,6 @@ def ask_gemini(client, model_name: str, prompt: str) -> VideoScript:
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
-        # No temperature/top_p/top_k: Google deprecated them for Gemini 3.x (ignored at best, HTTP 400 on newer models).
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=VideoScript,
@@ -178,7 +172,6 @@ def ask_gemini(client, model_name: str, prompt: str) -> VideoScript:
 
 
 def discover_gemini_models(client) -> list:
-    """Last resort when every configured model is gone: ask the API which Flash models this key can call."""
     skip = ("tts", "image", "live", "audio", "embedding", "robotics", "computer-use", "gemma", "aqa")
     found = []
     try:
@@ -205,26 +198,35 @@ def generate_script() -> VideoScript:
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
     niches = [
-        "daily discipline and self-control habits",
-        "stoic quotes and mindset shift for success",
-        "overcoming laziness and procrastination",
-        "how to build unshakeable mental toughness",
-        "morning routines of highly successful people"
+        "absurd shower thoughts that make zero sense",
+        "relatable awkward moments everyone pretends didn't happen",
+        "terrible life hacks that will ruin your day",
+        "roasting everyday human behavior",
+        "why being a blob is better than paying taxes"
     ]
     chosen_niche = random.choice(niches)
 
     prompt = f"""
-    Create a viral 30-to-45-second YouTube Short script about {chosen_niche}.
-    Provide a catchy title (under 70 characters, include #shorts), a brief SEO description, 5 tags, and 4 to 5 scenes.
+    You are 'john the blob'—a sarcastic, witty, and chaotic digital observer making fun of human life.
+    Create a hilarious, fast-paced, 40-to-50-second YouTube Short script about: {chosen_niche}.
+
+    Structure & Tone:
+    - **Hook (Scene 1)**: Start with an instantly relatable or absurd statement that stops people from swiping.
+    - **Body (Scenes 2 to 5)**: Deliver sharp, deadpan humor, ironies of modern life, and comedic observations.
+    - **Punchline (Scene 6 to 7)**: End with a witty, unforgettable final joke or chaotic takeaway.
+    - Tone must be dry, humorous, self-aware, and unexpected. Zero motivational clichés.
+
+    Provide a viral title (under 70 characters, must include #shorts), a funny SEO description, 5 tags, and exactly 6 to 7 scenes.
+
     For each scene:
-    - 'narration': 1-2 punchy sentences to be spoken aloud.
-    - 'video_search_query': 1-2 broad English keywords to find a matching stock video on Pixabay (e.g., 'gym workout motivation', 'dark discipline', 'running').
+    - 'narration': 1-2 punchy, witty sentences. Write with sharp comedic timing. No emojis or stage directions.
+    - 'video_search_query': 1-2 quirky or ironic stock video keywords on Pixabay (e.g., 'glitch art abstract', 'funny cat staring blankly', 'confused person looking at phone', 'funny abstract animation').
     """
 
     models = list(GEMINI_MODELS)
-    dead = set()  # models that answered 404: they won't come back, so stop asking
+    dead = set()
     attempt = 0
-    while True:  # keeps trying until Gemini answers (Ctrl+C to stop)
+    while True:
         live = [m for m in models if m not in dead]
         if not live:
             print("Aucun des modèles configurés n'existe plus : recherche des modèles disponibles...")
@@ -237,7 +239,7 @@ def generate_script() -> VideoScript:
             print(f"Tentative {attempt + 1} avec le modèle {model_name}...")
             try:
                 script = ask_gemini(client, model_name, prompt)
-                print("Script généré avec succès par Gemini !")
+                print("Script comique généré avec succès par Gemini !")
                 return script
             except Exception as e:
                 msg = str(e)
@@ -296,7 +298,6 @@ def download_pixabay_video(query: str, filename: str, used_ids: set):
     print(f"Téléchargement de la vidéo Pixabay pour la requête : '{query}'...")
     api_key = env("PIXABAY_API_KEY")
     words = query.split()
-    # exact query, then its first word, then generic queries, so we never end up with nothing
     queries = [query] + ([words[0]] if len(words) > 1 else []) + FALLBACK_QUERIES
 
     for q in queries:
@@ -307,7 +308,7 @@ def download_pixabay_video(query: str, filename: str, used_ids: set):
         except ValueError:
             hits = []
 
-        candidates = [h for h in hits if h.get("id") not in used_ids][:5]  # never reuse a clip within a video
+        candidates = [h for h in hits if h.get("id") not in used_ids][:5]
         random.shuffle(candidates)
         for hit in candidates:
             url = best_mp4_url(hit.get("videos", {}))
@@ -330,18 +331,16 @@ def download_pixabay_video(query: str, filename: str, used_ids: set):
 # 4. Render (MoviePy 1.x and 2.x)
 # ---------------------------------------------------------------------------
 def mp(clip, new_name: str, old_name: str, *args, **kwargs):
-    """Call the MoviePy 2.x method if it exists, otherwise its MoviePy 1.x name (subclip -> subclipped, ...)."""
     method = getattr(clip, new_name, None) or getattr(clip, old_name)
     return method(*args, **kwargs)
 
 
 def to_vertical(clip):
-    """Center-crop to 9:16 first, then resize once: faster and sharper than resizing the whole frame."""
     target = OUT_W / OUT_H
     w, h = clip.size
-    if w / h > target:  # too wide: trim the sides
+    if w / h > target:
         clip = mp(clip, "cropped", "crop", x_center=w / 2, y_center=h / 2, width=int(h * target), height=h)
-    else:               # too narrow: trim top and bottom
+    else:
         clip = mp(clip, "cropped", "crop", x_center=w / 2, y_center=h / 2, width=w, height=int(w / target))
     return mp(clip, "resized", "resize", (OUT_W, OUT_H))
 
@@ -362,12 +361,11 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
             raw_video = VideoFileClip(video_path, audio=False)
             to_close += [raw_audio, raw_video]
 
-            # mp3 durations are slightly optimistic; trimming the tail avoids read errors on the last frames
             end = raw_audio.duration - 0.05 if raw_audio.duration > 0.6 else raw_audio.duration
             audio_clip = mp(raw_audio, "subclipped", "subclip", 0, end)
 
             video_clip = raw_video
-            if video_clip.duration < end:  # footage shorter than the narration: repeat it
+            if video_clip.duration < end:
                 video_clip = concatenate_videoclips([video_clip] * (int(end // video_clip.duration) + 1))
             video_clip = mp(video_clip, "subclipped", "subclip", 0, end)
             video_clip = to_vertical(video_clip)
@@ -375,7 +373,7 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
             clips.append(video_clip)
 
         print("Assemblage final de la vidéo avec MoviePy...")
-        final_clip = concatenate_videoclips(clips, method="chain")  # every clip is exactly 1080x1920
+        final_clip = concatenate_videoclips(clips, method="chain")
         to_close.append(final_clip)
         final_clip.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
         print(f"Vidéo prête ! ({final_clip.duration:.1f}s)")
@@ -407,9 +405,9 @@ def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
     body = {
         "snippet": {
             "title": script.title[:100],
-            "description": f"{script.description}\n\n#shorts #motivation",
+            "description": f"{script.description}\n\n#shorts #comedy #johntheblob",
             "tags": script.tags,
-            "categoryId": "27"
+            "categoryId": "23"  # Category 23 is Comedy
         },
         "status": {
             "privacyStatus": YT_PRIVACY,
@@ -420,7 +418,7 @@ def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
     media = MediaFileUpload(video_path, chunksize=8 * 1024 * 1024, resumable=True, mimetype="video/mp4")
     request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
     try:
-        response = request.execute(num_retries=8)  # retries chunks on 5xx / rate limits / dropped connections
+        response = request.execute(num_retries=8)
     except RefreshError as e:
         raise FatalError(
             "YouTube refuse le refresh token (invalid_grant). Si l'écran de consentement OAuth est en mode "
@@ -435,7 +433,7 @@ def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
 
 
 if __name__ == "__main__":
-    print("=== DÉMARRAGE DE L'AGENT YOUTUBE ===")
+    print("=== DÉMARRAGE DE L'AGENT YOUTUBE (JOHN THE BLOB) ===")
     try:
         script_data = generate_script()
         print(f"Titre choisi : {script_data.title}")
