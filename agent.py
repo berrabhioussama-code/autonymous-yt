@@ -169,12 +169,13 @@ def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
     print(f"Uploaded successfully! Video ID: {response['id']}")
 
 if __name__ == "__main__":
-    print("1. Writing script with Gemini...")
+    print("DEBUG: Démarrage du script Python réussi.")
+    print("1. Génération du script avec Gemini...")
     script_data = generate_script()
-    print(f"Title: {script_data.title}")
-    
-    print("2. Building video with Pixabay clips and Fish Audio voiceover...")
+    print(f"Titre généré : {script_data.title}")
+
+    print("2. Construction de la vidéo...")
     build_video(script_data)
-    
-    print("3. Uploading to YouTube...")
+
+    print("3. Envoi sur YouTube...")
     upload_to_youtube(script_data)
