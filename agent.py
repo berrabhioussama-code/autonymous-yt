@@ -44,7 +44,7 @@ GEMINI_MODELS = [m.strip() for m in os.environ.get("GEMINI_MODELS", "").split(",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
 ]
-GEMINI_TIMEOUT_MS = 120_000  # a hung connection must raise so that it can be retried
+GEMINI_TIMEOUT_MS = 120_000
 
 FISH_MODEL = os.environ.get("FISH_MODEL", "s2.1-pro-free").strip()
 
@@ -53,7 +53,7 @@ if YT_PRIVACY not in ("public", "unlisted", "private"):
     YT_PRIVACY = "public"
 
 OUT_W, OUT_H = 1080, 1920
-FALLBACK_QUERIES = ["glitch art abstract", "confused person looking at phone", "weird abstract animation", "cat staring blankly"]
+FALLBACK_QUERIES = ["confused person looking at phone", "person staring blankly", "funny human behavior", "awkward silence"]
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +64,6 @@ class FatalError(RuntimeError):
 
 
 def env(name: str) -> str:
-    """Read a required variable. Strips the stray spaces/newlines that secrets often carry."""
     value = os.environ.get(name, "").strip()
     if not value:
         raise FatalError(f"Variable d'environnement manquante ou vide : {name}")
@@ -72,7 +71,6 @@ def env(name: str) -> str:
 
 
 def backoff(attempt: int, base: float = 3.0, cap: float = 60.0) -> float:
-    """Exponential backoff with jitter: ~3s, 6s, 12s, 24s, 48s, then 60s."""
     return min(cap, base * 2 ** min(attempt, 10) * random.uniform(0.75, 1.25))
 
 
@@ -87,7 +85,6 @@ def _retry_after(response) -> float:
 
 
 def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuses=(401, 402, 403), **kwargs):
-    """requests.request with a timeout and retries on network errors, 408/429/5xx and truncated bodies."""
     kwargs.setdefault("timeout", (10, 120))
     last = "?"
     for attempt in range(attempts):
@@ -112,7 +109,7 @@ def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuse
 
 
 # ---------------------------------------------------------------------------
-# 1. Script (Gemini) — Comedy & Absurdist Humor for "john the blob"
+# 1. Script (Gemini) — Comedy & Contextual Visual Queries for "john the blob"
 # ---------------------------------------------------------------------------
 class Scene(BaseModel):
     narration: str
@@ -208,19 +205,18 @@ def generate_script() -> VideoScript:
 
     prompt = f"""
     You are 'john the blob'—a sarcastic, witty, and chaotic digital observer making fun of human life.
-    Create a hilarious, fast-paced, 50-to-60-second YouTube Short script about: {chosen_niche}.
+    Create a hilarious, fast-paced, 40-to-50-second YouTube Short script about: {chosen_niche}.
 
     Structure & Tone:
-    - **Hook (Scene 1)**: Start with an instantly relatable or absurd statement that stops people from swiping.
-    - **Body (Scenes 2 to 5)**: Deliver sharp, deadpan humor, ironies of modern life, and comedic observations.
-    - **Punchline (Scene 6 to 7)**: End with a witty, unforgettable final joke or chaotic takeaway.
-    - Tone must be dry, humorous, self-aware, and unexpected. Zero motivational clichés.
+    - **Hook (Scene 1)**: Start with an instantly relatable or absurd statement.
+    - **Body (Scenes 2 to 5)**: Deliver sharp, deadpan humor and comedic observations.
+    - **Punchline (Scene 6 to 7)**: End with a witty final joke or chaotic takeaway.
 
     Provide a viral title (under 70 characters, must include #shorts), a funny SEO description, 5 tags, and exactly 6 to 7 scenes.
 
     For each scene:
-    - 'narration': 1-2 punchy, witty sentences. Write with sharp comedic timing. No emojis or stage directions.
-    - 'video_search_query': 1-2 quirky or ironic stock video keywords on Pixabay (e.g., 'glitch art abstract', 'funny cat staring blankly', 'confused person looking at phone', 'funny abstract animation').
+    - 'narration': 1-2 punchy, witty sentences with sharp comedic timing. No emojis or stage directions.
+    - 'video_search_query': 2-3 specific English visual keywords that **literally match or visually represent** the narration of this specific scene so the stock footage makes sense (e.g., if the narration is about trying to wake up early, use 'person sleeping alarm clock dark room'; if it's about staring at a fridge, use 'person opening refrigerator light'). Never use abstract or random words.
     """
 
     models = list(GEMINI_MODELS)
