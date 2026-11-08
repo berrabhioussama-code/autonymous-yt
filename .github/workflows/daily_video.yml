@@ -2,7 +2,9 @@ name: Daily YouTube AI Agent
 
 on:
   schedule:
-    - cron: '0 15 * * *' # Runs automatically every day at 15:00 UTC
+    # 06:47 UTC = 7:47 AM Tunisia | 14:47 UTC = 3:47 PM Tunisia
+    # Using minute 47 avoids the top-of-the-hour GitHub queue delay!
+    - cron: '47 6,14 * * *'
   workflow_dispatch:     # Adds a manual "Run workflow" button in GitHub
 
 jobs:
