@@ -1,0 +1,35 @@
+name: Daily YouTube AI Agent
+
+on:
+  schedule:
+    - cron: '0 15 * * *' # Runs automatically every day at 15:00 UTC
+  workflow_dispatch:     # Adds a manual "Run workflow" button in GitHub
+
+jobs:
+  create-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+          FISH_VOICE_ID: ${{ secrets.FISH_VOICE_ID }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python agent.py
