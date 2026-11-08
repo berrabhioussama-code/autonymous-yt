@@ -161,7 +161,7 @@ def ask_gemini(client, model_name: str, prompt: str) -> VideoScript:
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             response_schema=VideoScript,
-            temperature=1.0,  # Maximizes creativity and prevents repetitive scripts
+            temperature=1.0,
             top_p=0.95,
         ),
     )
@@ -309,19 +309,34 @@ def download_funny_music(filename: str):
     print("Téléchargement de la musique de fond comique...")
     api_key = env("PIXABAY_API_KEY")
     url = f"https://pixabay.com/api/audio/?key={api_key}&q=funny+comedy+quirky&per_page=10"
+    
+    # Lien de secours direct garanti pour éviter l'échec de la musique de fond
+    fallback_audio_url = "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db32768078.mp3?filename=fun-life-112188.mp3"
+    
     try:
         r = requests.get(url, timeout=15).json()
         hits = r.get("hits", [])
         if hits:
-            audio_url = random.choice(hits).get("audio")
-            if audio_url:
-                res = requests.get(audio_url, timeout=30)
-                if len(res.content) > 5000:
-                    with open(filename, "wb") as f:
-                        f.write(res.content)
-                    return True
+            audio_url = random.choice(hits).get("audio", fallback_audio_url)
+        else:
+            audio_url = fallback_audio_url
+            
+        res = requests.get(audio_url, timeout=30)
+        if len(res.content) > 5000:
+            with open(filename, "wb") as f:
+                f.write(res.content)
+            return True
     except Exception as e:
-        print(f"Impossible de récupérer la musique Pixabay Audio : {e}")
+        print(f"Erreur Pixabay Audio, utilisation du lien de secours : {e}")
+        try:
+            res = requests.get(fallback_audio_url, timeout=30)
+            if len(res.content) > 5000:
+                with open(filename, "wb") as f:
+                    f.write(res.content)
+                return True
+        except Exception as ex:
+            print(f"Impossible de télécharger la musique de fond : {ex}")
+            
     return False
 
 
