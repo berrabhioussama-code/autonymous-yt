@@ -1,6 +1,10 @@
 """
-YouTube Shorts agent - Comedy / Absurdist Humor (john the blob)
-Fixes: Guaranteed built-in silly music, accurate 1-2 word visual search, punchy pacing (less yapping)
+YouTube Shorts agent - Self-Learning Comedy Agent (john the blob)
+Features:
+- Analyzes past YouTube video views & likes to double down on winning topics
+- Guaranteed built-in Python synth comedy music (no broken URLs or MoviePy 2.x bugs)
+- Accurate 1-2 word Pixabay search (no random shuffling)
+- Punchy 1-sentence pacing with comedic pauses (no yapping)
 """
 import os
 import re
@@ -110,8 +114,70 @@ def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuse
     raise RuntimeError(f"{what} : échec après {attempts} tentatives ({last})")
 
 
+def get_youtube_client():
+    creds = Credentials(
+        token=None,
+        refresh_token=env("YT_REFRESH_TOKEN"),
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=env("YT_CLIENT_ID"),
+        client_secret=env("YT_CLIENT_SECRET")
+    )
+    return build("youtube", "v3", credentials=creds, cache_discovery=False)
+
+
 # ---------------------------------------------------------------------------
-# 1. Script (Gemini) — Less Yapping, Better Visual Match
+# 0. Self-Learning Analytics (YouTube Data API v3)
+# ---------------------------------------------------------------------------
+def get_channel_performance() -> str:
+    """Fetches recent videos and their view/like counts to guide Gemini."""
+    print("0. Analyse des performances des anciennes vidéos sur YouTube...")
+    try:
+        youtube = get_youtube_client()
+
+        # 1. Get the channel's uploads playlist ID
+        ch_res = youtube.channels().list(part="contentDetails", mine=True).execute()
+        items = ch_res.get("items", [])
+        if not items:
+            return "No past videos found."
+        uploads_id = items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+        # 2. Get the last 15 uploaded videos
+        pl_res = youtube.playlistItems().list(
+            part="contentDetails", playlistId=uploads_id, maxResults=15
+        ).execute()
+        video_ids = [item["contentDetails"]["videoId"] for item in pl_res.get("items", [])]
+        if not video_ids:
+            return "No past videos yet."
+
+        # 3. Fetch views, likes, and titles for each video
+        vid_res = youtube.videos().list(
+            part="snippet,statistics", id=",".join(video_ids)
+        ).execute()
+
+        video_stats = []
+        for v in vid_res.get("items", []):
+            title = v["snippet"]["title"]
+            views = int(v["statistics"].get("viewCount", 0))
+            likes = int(v["statistics"].get("likeCount", 0))
+            video_stats.append((views, likes, title))
+
+        # Sort from highest views to lowest views
+        video_stats.sort(reverse=True, key=lambda x: (x[0], x[1]))
+
+        report_lines = [
+            f"- '{title}' | Views: {views} | Likes: {likes}"
+            for views, likes, title in video_stats
+        ]
+        report = "\n".join(report_lines)
+        print(f"Performances récupérées (triées par succès) :\n{report}")
+        return report
+    except Exception as e:
+        print(f"Info: Lecture des stats ignorée ({e}). Poursuite normale.")
+        return "No past performance data available."
+
+
+# ---------------------------------------------------------------------------
+# 1. Script (Gemini) — Data-Driven, Less Yapping, Better Visual Match
 # ---------------------------------------------------------------------------
 class Scene(BaseModel):
     narration: str
@@ -181,21 +247,21 @@ def discover_gemini_models(client) -> list:
     return found
 
 
-def generate_script() -> VideoScript:
+def generate_script(performance_report: str) -> VideoScript:
     print("1. Connexion à Gemini...")
     client = genai.Client(
         api_key=env("GEMINI_API_KEY"),
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
     niches = [
-        "absurd shower thoughts about everyday objects",
-        "awkward social situations everyone secretly hates",
-        "ridiculous things humans do at the grocery store",
-        "roasting human morning routines and coffee addiction",
+        "awkward social situations everyone secretly pretends are normal",
+        "embarrassing micro-moments we all experience in public",
+        "absurd shower thoughts about everyday human habits",
+        "ridiculous things humans do at the grocery store or restaurants",
         "weird things people do when they think nobody is watching",
-        "unspoken rules of elevators and waiting rooms",
-        "funny observations about pets ruling human households",
-        "why adulting is basically a giant scam"
+        "unspoken rules of elevators, hallways, and waiting rooms",
+        "funny observations about how phones and texting ruined our brains",
+        "why adulting and modern daily routines are basically a giant scam"
     ]
     chosen_niche = random.choice(niches)
     random_seed_trigger = f"Random seed: {random.randint(1000, 999999)}"
@@ -203,14 +269,21 @@ def generate_script() -> VideoScript:
     prompt = f"""
     {random_seed_trigger}
     You are 'john the blob'—a deadpan, witty digital observer roasting human behavior.
-    Create a punchy YouTube Short comedy script about: {chosen_niche}.
+
+    HERE IS LIVE ANALYTICS DATA FROM OUR YOUTUBE CHANNEL (sorted from best performing to worst):
+    {performance_report}
+
+    HOW TO USE THIS DATA:
+    - Analyze which past video titles got the highest views and likes. Notice the psychological pattern (e.g., highly relatable awkward moments, everyday human embarrassment, sharp social observations).
+    - DO NOT repeat any of the past titles, jokes, or exact topics listed above.
+    - Craft a brand-new script inspired by the humor style and relatability of our #1 highest-viewed video, blended with today's angle: {chosen_niche}.
 
     CRITICAL RULES TO AVOID "YAPPING" AND FIX STOCK FOOTAGE MATCHING:
-    1. **NO YAPPING**: Each scene's 'narration' MUST be **1 single short, punchy sentence (maximum 10 to 13 words)**. No long-winded rants or complex filler words. Let the joke hit fast!
+    1. **NO YAPPING**: Each scene's 'narration' MUST be **1 single short, punchy sentence (maximum 10 to 13 words)**. No long-winded rants. Let the joke hit fast!
     2. **EXACTLY 10 SCENES**: Provide 10 rapid-fire scenes so the video moves quickly with visual variety.
-    3. **Hook (Scene 1)**: A short, hilarious 1-sentence hook that grabs attention in 3 seconds.
+    3. **Hook (Scene 1)**: A short, hilarious 1-sentence hook that stops viewers from swiping in the first 3 seconds.
     4. **Outro (Scene 10)**: A quick final punchline telling them to like and subscribe to john the blob.
-    5. **SIMPLE 1-2 WORD SEARCH QUERIES**: Pixabay fails when given long phrases! For 'video_search_query', provide ONLY **1 or 2 ultra-common concrete English nouns/actions** that literally appear in your sentence and are guaranteed to exist on a stock video site (e.g., 'drinking coffee', 'microwave', 'sleeping bed', 'supermarket', 'typing laptop', 'alarm clock', 'traffic jam'). NEVER use 3+ words or abstract concepts.
+    5. **SIMPLE 1-2 WORD SEARCH QUERIES**: Pixabay fails when given long phrases! For 'video_search_query', provide ONLY **1 or 2 ultra-common concrete English nouns/actions** that literally appear in your sentence and are guaranteed to exist on a stock video site (e.g., 'drinking coffee', 'microwave', 'sleeping bed', 'supermarket', 'typing laptop', 'alarm clock', 'traffic jam', 'walking dog'). NEVER use 3+ words or abstract concepts.
 
     Provide a viral title (under 70 characters, include #shorts), SEO description, 5 tags, and 10 scenes.
     """
@@ -222,7 +295,7 @@ def generate_script() -> VideoScript:
             print(f"Tentative {attempt + 1} avec le modèle {model_name}...")
             try:
                 script = ask_gemini(client, model_name, prompt)
-                print("Script généré avec succès par Gemini !")
+                print("Script optimisé généré avec succès par Gemini !")
                 return script
             except Exception as e:
                 msg = str(e)
@@ -283,7 +356,7 @@ def download_pixabay_video(query: str, filename: str, used_ids: set):
     if len(words) >= 2:
         search_list.append(f"{words[0]} {words[1]}")
     if words:
-        search_list.append(words[-1])  # Usually the main noun in English (e.g. "hot coffee" -> "coffee")
+        search_list.append(words[-1])
         search_list.append(words[0])
     search_list.extend(FALLBACK_QUERIES)
 
@@ -334,10 +407,9 @@ def generate_silly_music_wav(filename: str, duration_sec: float, volume: float =
     sample_rate = 44100
     total_samples = int(sample_rate * duration_sec)
 
-    # Bouncy staccato comedy melody notes (in Hz) + bassline
     melody_notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23, 440.00, 392.00, 329.63, 293.66]
     bass_notes = [130.81, 196.00, 146.83, 196.00]
-    step_sec = 0.22  # Fast, quirky comedic tempo
+    step_sec = 0.22
     step_samples = int(sample_rate * step_sec)
 
     with wave.open(filename, "w") as wav_file:
@@ -350,17 +422,13 @@ def generate_silly_music_wav(filename: str, duration_sec: float, volume: float =
             step_idx = i // step_samples
             pos_in_step = (i % step_samples) / sample_rate
 
-            # Staccato plucky envelope (fades out quickly on each note like pizzicato strings)
             env_melody = math.exp(-pos_in_step * 14.0)
             freq_m = melody_notes[step_idx % len(melody_notes)]
-            # Add a tiny comical pitch bend at the start of every note
             freq_m *= (1.0 + 0.03 * math.exp(-pos_in_step * 40.0))
 
-            # Bouncy oom-pah bass every 2 steps
             freq_b = bass_notes[(step_idx // 2) % len(bass_notes)]
             env_bass = math.exp(-pos_in_step * 9.0) if (step_idx % 2 == 0) else 0.0
 
-            # Rich harmonic wave for a goofy retro/cartoon vibe
             melody_val = (math.sin(2.0 * math.pi * freq_m * pos_in_step) +
                           0.4 * math.sin(4.0 * math.pi * freq_m * pos_in_step)) * env_melody
             bass_val = math.sin(2.0 * math.pi * freq_b * pos_in_step) * env_bass * 0.8
@@ -417,7 +485,7 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
             voice_dur = max(0.5, raw_audio.duration - 0.05)
             audio_clip = mp(raw_audio, "subclipped", "subclip", 0, voice_dur)
 
-            # Add a 0.35s pause at the end of each clip so he doesn't yap non-stop
+            # 0.35s pause at the end of each clip so he doesn't yap non-stop
             scene_dur = voice_dur + 0.35
 
             video_clip = raw_video
@@ -432,7 +500,6 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
         final_video = concatenate_videoclips(clips, method="chain")
         to_close.append(final_video)
 
-        # Generate and mix the silly background music for the exact video duration
         generate_silly_music_wav(music_path, final_video.duration, volume=0.14)
         bg_music = AudioFileClip(music_path)
         to_close.append(bg_music)
@@ -459,14 +526,7 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
 # ---------------------------------------------------------------------------
 def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
     print("Envoi de la vidéo sur YouTube...")
-    creds = Credentials(
-        token=None,
-        refresh_token=env("YT_REFRESH_TOKEN"),
-        token_uri="https://oauth2.googleapis.com/token",
-        client_id=env("YT_CLIENT_ID"),
-        client_secret=env("YT_CLIENT_SECRET")
-    )
-    youtube = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    youtube = get_youtube_client()
 
     body = {
         "snippet": {
@@ -488,9 +548,10 @@ def upload_to_youtube(script: VideoScript, video_path="final_short.mp4"):
 
 
 if __name__ == "__main__":
-    print("=== DÉMARRAGE DE L'AGENT (JOHN THE BLOB) ===")
+    print("=== DÉMARRAGE DE L'AGENT AUTO-APPRENANT (JOHN THE BLOB) ===")
     try:
-        script_data = generate_script()
+        perf_report = get_channel_performance()
+        script_data = generate_script(perf_report)
         print(f"Titre choisi : {script_data.title}")
 
         build_video(script_data)
