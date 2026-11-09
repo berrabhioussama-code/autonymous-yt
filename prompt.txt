@@ -36,4 +36,3 @@ CRITICAL RULES TO AVOID "YAPPING" AND FIX STOCK FOOTAGE MATCHING:
 
 Provide a viral title (under 70 characters, include #shorts), SEO description, 5 tags, and 10 scenes.
 
-SPECIAL PROMPT: make something about how hard is algebra
