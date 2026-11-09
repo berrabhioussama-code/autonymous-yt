@@ -35,3 +35,5 @@ CRITICAL RULES TO AVOID "YAPPING" AND FIX STOCK FOOTAGE MATCHING:
 5. **SIMPLE 1-2 WORD SEARCH QUERIES**: Pixabay fails when given long phrases! For 'video_search_query', provide ONLY **1 or 2 ultra-common concrete English nouns/actions** that literally appear in your sentence and are guaranteed to exist on a stock video site (e.g., 'drinking coffee', 'microwave', 'sleeping bed', 'supermarket', 'typing laptop', 'alarm clock', 'traffic jam', 'walking dog'). NEVER use 3+ words or abstract concepts.
 
 Provide a viral title (under 70 characters, include #shorts), SEO description, 5 tags, and 10 scenes.
+
+SPECIAL PROMPT: make something about how hard is algebra
