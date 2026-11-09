@@ -1,0 +1,12 @@
+// One angle per line. Lines starting with // are ignored.
+// Once enough videos have been analysed, angles that performed well are picked more often,
+// but every angle always keeps a chance, so nothing is ever ruled out for good.
+// Tip: if you reword a line, its past results are forgotten (they are matched by exact text).
+awkward social situations everyone secretly pretends are normal
+embarrassing micro-moments we all experience in public
+absurd shower thoughts about everyday human habits
+ridiculous things humans do at the grocery store or restaurants
+weird things people do when they think nobody is watching
+unspoken rules of elevators, hallways, and waiting rooms
+funny observations about how phones and texting ruined our brains
+why adulting and modern daily routines are basically a giant scam
