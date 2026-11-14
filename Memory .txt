@@ -1,0 +1,19 @@
+// ============================================================================
+//  memory.txt — long-term memory of the agent. A normal text file: read it, edit it.
+//  Lines starting with // are ignored.
+//
+//  OWNER NOTES : yours. Read on every run, NEVER modified by the agent. Write rules, taste,
+//                things to avoid ("never joke about X", "more dog videos").
+//  LESSONS     : rewritten by the agent (about once a day) from your results: what works, what doesn't.
+//                Delete or fix any line you disagree with.
+//  VIDEO LOG   : one entry added for every video created (title, angle, every joke, YouTube id,
+//                publish time) so it never repeats itself.
+//  The workflow commits this file after each run, so the memory survives between runs.
+// ============================================================================
+
+=== OWNER NOTES ===
+// Example (remove the // to activate): Never make jokes about religion, politics or real people.
+
+=== LESSONS ===
+
+=== VIDEO LOG ===
