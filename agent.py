@@ -1,20 +1,29 @@
 """
 YouTube Shorts agent — self-learning comedy channel (john the blob)
-Gemini (script) -> Fish Audio (voice) -> Pixabay (footage) -> synth music -> MoviePy -> YouTube
+Gemini (script) -> Fish Audio (voice) -> Pixabay (footage) -> synth music -> MoviePy -> YouTube (scheduled)
 
 Files next to this script (edit them, no code needed):
-  prompt.txt   the prompt sent to Gemini
-  niches.txt   the daily angles, one per line
+  prompt.txt          the prompt that makes Gemini write each video
+  niches.txt          the daily angles, one per line
+  lessons_prompt.txt  the prompt that makes Gemini learn from your results
+  memory.txt          long-term memory: your notes, the lessons learned, a log of every video
+                      (the workflow commits it after each run)
+
+Publishing: the video is built early, uploaded as PRIVATE with a publish date, and YouTube itself puts it online
+at exactly 08:00 and 16:00 Tunisia time. GitHub's late or dropped cron runs no longer matter.
 
 Optional environment variables (everything has a default):
+  PUBLISH_TIMES      local publish slots, default "08:00,16:00" ("" = publish immediately)
+  PUBLISH_TZ         time zone of the slots, default Africa/Tunis
   GEMINI_MODELS      "model-a,model-b"  override the model order
   MUSIC_VOLUME       0 disables the background music (default 0.10)
   MIN_SCENES / MAX_SCENES   accepted number of scenes (default 5 / 15)
   PIXABAY_PICK_TOP   pick randomly among the N best clips instead of always the best (default 1)
-  SCRIPT_ONLY=1      only generate + print the script (no voice, render or upload): to test prompt.txt
-  NO_UPLOAD=1        build the video but don't upload it
-  YT_PRIVACY         public | unlisted | private (default public)
-  FISH_MODEL, FISH_VOICE_ID, PROMPT_FILE, NICHES_FILE, ANALYTICS_MIN_AGE_DAYS
+  SCRIPT_ONLY=1      only generate + print the script (no voice, render, upload or memory change)
+  NO_UPLOAD=1        build the video but don't upload it (no memory change either)
+  YT_PRIVACY         public | unlisted | private (default public; only "public" is scheduled)
+  FISH_MODEL, FISH_VOICE_ID, PROMPT_FILE, NICHES_FILE, MEMORY_FILE, LESSONS_PROMPT_FILE,
+  ANALYTICS_MIN_AGE_DAYS, SCHEDULE_LEAD_MINUTES, LESSONS_EVERY_HOURS
 """
 import os
 import re
@@ -27,8 +36,9 @@ import random
 import hashlib
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 from pydantic import BaseModel
@@ -65,6 +75,8 @@ print("DEBUG: Bibliothèques chargées avec succès.")
 BASE_DIR = Path(__file__).resolve().parent
 PROMPT_FILE = Path(os.environ.get("PROMPT_FILE") or BASE_DIR / "prompt.txt")
 NICHES_FILE = Path(os.environ.get("NICHES_FILE") or BASE_DIR / "niches.txt")
+LESSONS_PROMPT_FILE = Path(os.environ.get("LESSONS_PROMPT_FILE") or BASE_DIR / "lessons_prompt.txt")
+MEMORY_FILE = Path(os.environ.get("MEMORY_FILE") or BASE_DIR / "memory.txt")
 
 
 def env_flag(name: str) -> bool:
@@ -99,6 +111,17 @@ YT_PRIVACY = os.environ.get("YT_PRIVACY", "public").strip().lower()
 if YT_PRIVACY not in ("public", "unlisted", "private"):
     YT_PRIVACY = "public"
 
+# When YouTube should put each video online. "" disables scheduling (publish right away, like before).
+PUBLISH_TIMES = os.environ.get("PUBLISH_TIMES", "08:00,16:00")
+PUBLISH_TZ = os.environ.get("PUBLISH_TZ", "").strip() or "Africa/Tunis"
+SCHEDULE_LEAD_MIN = env_number("SCHEDULE_LEAD_MINUTES", 20, int)  # a slot must be at least this far away to be used
+SLOT_SPACING_MIN = 45  # a video within 45 minutes of a slot means that slot is already filled
+
+MEMORY_RECENT_VIDEOS = 10  # how many past videos (with all their jokes) Gemini sees in {memory}
+LESSONS_EVERY_HOURS = env_number("LESSONS_EVERY_HOURS", 20.0)
+MIN_VIDEOS_FOR_LESSONS = 3
+LESSONS_GIVE_UP_SEC = 150  # the lessons step is optional: it never holds the video back longer than this
+
 MIN_SCENES = env_number("MIN_SCENES", 5, int)
 MAX_SCENES = env_number("MAX_SCENES", 15, int)
 MUSIC_VOLUME = env_number("MUSIC_VOLUME", 0.10)
@@ -128,6 +151,19 @@ DEFAULT_NICHES = [  # only used if niches.txt is missing or empty
 # ---------------------------------------------------------------------------
 class FatalError(RuntimeError):
     """Something retrying can never fix (bad key, no credit, revoked token, missing file...)."""
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def parse_iso(value):
+    """'2026-11-10T07:00:00Z' -> aware datetime; anything unreadable -> None."""
+    try:
+        parsed = datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 def env(name: str) -> str:
@@ -181,7 +217,7 @@ def request_with_retry(what, method, url, attempts=8, min_bytes=0, fatal_statuse
 # ---------------------------------------------------------------------------
 # Prompt + niches live in text files (edit them without touching the code)
 # ---------------------------------------------------------------------------
-PROMPT_PLACEHOLDERS = ("performance_report", "niche", "seed")
+PROMPT_PLACEHOLDERS = ("performance_report", "memory", "niche", "seed")
 
 
 def _read_clean_lines(path: Path) -> list:
@@ -199,6 +235,9 @@ def load_prompt_template() -> str:
         raise FatalError(f"{PROMPT_FILE.name} est vide.")
     if "{performance_report}" not in template:
         print("ATTENTION : prompt.txt ne contient pas {performance_report} : Gemini ne verra pas les stats.")
+    if "{memory}" not in template:
+        print("ATTENTION : prompt.txt ne contient pas {memory} : Gemini ne verra pas la mémoire "
+              "(tes notes, les leçons, les dernières vidéos).")
     unknown = sorted(set(re.findall(r"\{([a-z_]+)\}", template)) - set(PROMPT_PLACEHOLDERS))
     if unknown:
         print("ATTENTION : placeholder(s) inconnu(s) dans prompt.txt, laissés tels quels : "
@@ -225,6 +264,161 @@ def load_niches() -> list:
 
 
 # ---------------------------------------------------------------------------
+# Memory (memory.txt): owner notes, lessons learned, log of every video
+# ---------------------------------------------------------------------------
+MEMORY_HEADER = """// ============================================================================
+//  memory.txt — long-term memory of the agent. A normal text file: read it, edit it.
+//  Lines starting with // are ignored.
+//
+//  OWNER NOTES : yours. Read on every run, NEVER modified by the agent. Write rules, taste,
+//                things to avoid ("never joke about X", "more dog videos").
+//  LESSONS     : rewritten by the agent (about once a day) from your results: what works, what doesn't.
+//                Delete or fix any line you disagree with.
+//  VIDEO LOG   : one entry added for every video created (title, angle, every joke, YouTube id,
+//                publish time) so it never repeats itself.
+//  The workflow commits this file after each run, so the memory survives between runs.
+// ============================================================================"""
+OWNER, LESSONS, LOG = "OWNER NOTES", "LESSONS", "VIDEO LOG"
+SECTION_RE = re.compile(r"^===\s*(.+?)\s*===\s*$", re.M)
+ENTRY_FIELDS = ("created", "id", "publish", "when", "title", "angle", "hook", "lines")
+
+
+def _strip_comments(text: str) -> str:
+    return "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("//")).strip()
+
+
+def _one_line(value) -> str:
+    return re.sub(r"\s+", " ", str(value)).strip()
+
+
+def parse_entries(body: str) -> list:
+    """VIDEO LOG body -> list of {field: value}. Tolerant: blank lines, // comments and unknown keys are fine."""
+    entries, current = [], None
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("//"):
+            continue
+        if line.startswith("---"):
+            current = {}
+            entries.append(current)
+        elif current is not None:
+            key, sep, value = line.partition(":")
+            if sep:
+                current[key.strip().lower()] = value.strip()
+    return entries
+
+
+def render_entry(entry: dict) -> str:
+    return "\n".join(["--- video"] + [f"{k}: {_one_line(entry[k])}" for k in ENTRY_FIELDS if entry.get(k)])
+
+
+@dataclass
+class Memory:
+    header: str = MEMORY_HEADER
+    sections: dict = field(default_factory=dict)  # "OWNER NOTES" / "LESSONS" / "VIDEO LOG" / anything you add
+
+    @property
+    def owner_notes(self) -> str:
+        return _strip_comments(self.sections.get(OWNER, ""))
+
+    @property
+    def lessons(self) -> str:
+        return _strip_comments(self.sections.get(LESSONS, ""))
+
+    @property
+    def lessons_updated(self):
+        m = re.search(r"^//\s*updated:\s*(\S+)", self.sections.get(LESSONS, ""), re.M)
+        return parse_iso(m.group(1)) if m else None
+
+    @property
+    def entries(self) -> list:
+        return parse_entries(self.sections.get(LOG, ""))
+
+
+def parse_memory(text: str) -> Memory:
+    text = text.replace("\r\n", "\n")
+    matches = list(SECTION_RE.finditer(text))
+    if not matches:  # a plain text file: everything in it is considered owner notes
+        return Memory(sections={OWNER: text.strip("\n")})
+    sections = {}
+    for i, m in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        sections[m.group(1).strip().upper()] = text[m.end():end].strip("\n")
+    return Memory(header=text[:matches[0].start()].rstrip("\n") or MEMORY_HEADER, sections=sections)
+
+
+def render_memory(memory: Memory) -> str:
+    names = [OWNER, LESSONS, LOG] + [n for n in memory.sections if n not in (OWNER, LESSONS, LOG)]
+    blocks = [memory.header.rstrip("\n")]
+    for name in names:
+        body = memory.sections.get(name, "").strip("\n")
+        blocks.append(f"=== {name} ===" + (f"\n{body}" if body else ""))
+    return "\n\n".join(blocks) + "\n"
+
+
+def load_memory() -> Memory:
+    if not MEMORY_FILE.is_file():
+        print(f"{MEMORY_FILE.name} introuvable : mémoire vide (le fichier sera créé après la première vidéo).")
+        return Memory()
+    raw = MEMORY_FILE.read_bytes()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("latin-1")  # never lose the owner's notes because of an odd editor encoding
+    memory = parse_memory(text)
+    print(f"Mémoire chargée : {len(memory.entries)} vidéo(s) dans le journal, "
+          f"{'des leçons' if memory.lessons else 'pas encore de leçons'}, "
+          f"{'des notes du propriétaire' if memory.owner_notes else 'pas de notes du propriétaire'}.")
+    return memory
+
+
+def save_memory(memory: Memory):
+    """Atomic write: a crash can never leave a half-written memory.txt."""
+    tmp = MEMORY_FILE.with_name(MEMORY_FILE.name + ".tmp")
+    tmp.write_text(render_memory(memory), encoding="utf-8")
+    os.replace(tmp, MEMORY_FILE)
+
+
+def memory_for_prompt(memory: Memory) -> str:
+    """What Gemini reads in {memory}: the owner's rules, the lessons, and the jokes of the latest videos."""
+    parts = []
+    if memory.owner_notes:
+        parts.append("OWNER NOTES (rules from the channel owner, always follow them):\n" + memory.owner_notes)
+    if memory.lessons:
+        parts.append("LESSONS LEARNED FROM PAST RESULTS (apply them):\n" + memory.lessons)
+    recent = memory.entries[-MEMORY_RECENT_VIDEOS:]
+    if recent:
+        parts.append("YOUR LAST VIDEOS (never reuse their jokes, premises or hooks):\n" + "\n".join(
+            f'- "{e.get("title", "?")}" [angle: {e.get("angle", "?")}] lines: {e.get("lines", "")}' for e in recent))
+    return "\n\n".join(parts) or "No memory yet (first videos): nothing to take into account."
+
+
+def memory_taken(memory: Memory) -> list:
+    """Publish times already used by a video listed in the log (works even without YouTube read access)."""
+    taken = []
+    for e in memory.entries:
+        t = parse_iso(e.get("publish", "")) or parse_iso(e.get("created", ""))
+        if t:
+            taken.append(t)
+    return taken
+
+
+def remember_video(memory: Memory, script, niche: str, video_id: str, publish_at=None):
+    entry = {
+        "created": utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "id": video_id,
+        "publish": publish_at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ") if publish_at else "immediate",
+        "when": f"{publish_at.astimezone(get_publish_tz()):%Y-%m-%d %H:%M} ({PUBLISH_TZ})" if publish_at else "",
+        "title": script.title,
+        "angle": niche,
+        "hook": script.scenes[0].narration,
+        "lines": " | ".join(s.narration.replace("|", "/") for s in script.scenes),
+    }
+    body = memory.sections.get(LOG, "").rstrip()
+    memory.sections[LOG] = (body + "\n\n" if body else "") + render_entry(entry)
+
+
+# ---------------------------------------------------------------------------
 # 0. Self-learning analytics (YouTube Data API v3)
 # ---------------------------------------------------------------------------
 READ_SCOPES = {
@@ -244,10 +438,13 @@ class Analytics:
                    "today's angle and the rules below.")
     niche_scores: dict = field(default_factory=dict)  # angle -> [views/day of its past videos]
     titles: list = field(default_factory=list)        # every past title: never repeat them
+    taken: list = field(default_factory=list)         # publish times already used by a published/scheduled video
+    stats: dict = field(default_factory=dict)         # normalised title -> (views/day, like rate %)
+    mature_count: int = 0                             # videos old enough to be judged
 
 
 def niche_label(niche: str) -> str:
-    """Short invisible-ish tag stored on each upload, so we can tell later which angle a video used."""
+    """Short tag stored on each upload, so we can tell later which angle a video used."""
     return "jtb-" + hashlib.sha256(niche.encode("utf-8")).hexdigest()[:8]
 
 
@@ -279,21 +476,24 @@ def get_youtube_client():
 
 def analyse_videos(videos: list, niches: list, now=None) -> Analytics:
     """Turns raw YouTube video resources into the report Gemini reads. Pure function, easy to test."""
-    now = now or datetime.now(timezone.utc)
+    now = now or utcnow()
     label_to_niche = {niche_label(n): n for n in niches}
-    titles, rows = [], []
+    titles, rows, taken = [], [], []
 
     for v in videos:
         sn, st, status = v.get("snippet", {}), v.get("statistics", {}), v.get("status", {})
         title = (sn.get("title") or "").strip()
         if title:
             titles.append(title)
+        scheduled_for = parse_iso(status["publishAt"]) if status.get("publishAt") else None
+        if scheduled_for:
+            taken.append(scheduled_for)  # a video waiting for its slot
         if status.get("privacyStatus") != "public":
             continue  # private videos have no audience: their 0 views would teach Gemini nothing
-        try:
-            published = datetime.fromisoformat(sn["publishedAt"].replace("Z", "+00:00"))
-        except (KeyError, ValueError):
+        published = parse_iso(sn.get("publishedAt"))
+        if published is None:
             continue
+        taken.append(published)
         age = max((now - published).total_seconds() / 86400, 0.01)
         views = int(st.get("viewCount") or 0)
         likes = int(st["likeCount"]) if st.get("likeCount") is not None else None
@@ -315,10 +515,10 @@ def analyse_videos(videos: list, niches: list, now=None) -> Analytics:
     mature = sorted((r for r in rows if r["age"] >= MIN_AGE_DAYS), key=lambda r: r["vpd"], reverse=True)
     if not mature:
         if not titles:
-            return Analytics()
+            return Analytics(taken=taken)
         return Analytics(report=(f"No public video is older than {MIN_AGE_DAYS:g} days yet, so performance can't "
                                  "be judged. Ignore performance and rely on today's angle.\n\n" + avoid),
-                         titles=titles)
+                         titles=titles, taken=taken)
 
     def line(rank, r):
         parts = [f'{rank}. "{r["title"]}"',
@@ -352,7 +552,9 @@ def analyse_videos(videos: list, niches: list, now=None) -> Analytics:
             f"- {n}: {sum(v) / len(v):.0f}/day ({len(v)} video{'s' if len(v) > 1 else ''})" for n, v in ranked))
     if avoid:
         parts.append(avoid)
-    return Analytics(report="\n\n".join(parts), niche_scores=scores, titles=titles)
+    return Analytics(report="\n\n".join(parts), niche_scores=scores, titles=titles, taken=taken,
+                     stats={_norm_title(r["title"]): (r["vpd"], r["like_rate"]) for r in mature},
+                     mature_count=len(mature))
 
 
 def get_channel_performance(niches: list) -> Analytics:
@@ -414,7 +616,63 @@ def pick_niche(niches: list, niche_scores: dict):
 
 
 # ---------------------------------------------------------------------------
-# 1. Script (Gemini) — never gives up
+# Publishing calendar: which slot is the next one, and is it already filled?
+# ---------------------------------------------------------------------------
+def parse_publish_times(text: str) -> list:
+    """'08:00, 16:00' -> [(8, 0), (16, 0)]. Bad entries are reported and skipped."""
+    times = []
+    for part in re.split(r"[,\s;]+", (text or "").strip()):
+        if not part:
+            continue
+        m = re.fullmatch(r"(\d{1,2}):(\d{2})", part)
+        if m and int(m.group(1)) < 24 and int(m.group(2)) < 60:
+            times.append((int(m.group(1)), int(m.group(2))))
+        else:
+            print(f"ATTENTION : heure de publication ignorée : '{part}' (format attendu : 08:00)")
+    return sorted(set(times))
+
+
+def get_publish_tz():
+    try:
+        return ZoneInfo(PUBLISH_TZ)
+    except Exception:
+        if PUBLISH_TZ == "Africa/Tunis":
+            return timezone(timedelta(hours=1))  # Tunisia has no daylight saving time
+        print(f"ATTENTION : fuseau horaire '{PUBLISH_TZ}' introuvable, UTC utilisé à la place.")
+        return timezone.utc
+
+
+def next_publish_slot(now: datetime, times: list, tz, lead_min=None):
+    """First slot that is at least `lead_min` minutes away (time to build + upload), as an aware UTC datetime."""
+    lead = timedelta(minutes=SCHEDULE_LEAD_MIN if lead_min is None else lead_min)
+    local_now = now.astimezone(tz)
+    for day in range(4):
+        d = (local_now + timedelta(days=day)).date()
+        for hour, minute in times:
+            slot = datetime(d.year, d.month, d.day, hour, minute, tzinfo=tz).astimezone(timezone.utc)
+            if slot >= now + lead:
+                return slot
+    return None
+
+
+def slot_is_taken(slot: datetime, taken: list) -> bool:
+    return any(abs((slot - t).total_seconds()) < SLOT_SPACING_MIN * 60 for t in taken)
+
+
+def plan_publish_slot(analytics: Analytics, memory: Memory):
+    """(slot, free). slot is None when scheduling is off. Only the NEXT slot is ever filled: a backup run, a late
+    run or a manual run finding it already taken simply does nothing, so videos can never pile up on one slot."""
+    times = parse_publish_times(PUBLISH_TIMES)
+    if not times:
+        return None, True
+    slot = next_publish_slot(utcnow(), times, get_publish_tz())
+    if slot is None:
+        return None, True
+    return slot, not slot_is_taken(slot, list(analytics.taken) + memory_taken(memory))
+
+
+# ---------------------------------------------------------------------------
+# 1. Gemini — never gives up on the script
 # ---------------------------------------------------------------------------
 class Scene(BaseModel):
     narration: str
@@ -426,6 +684,10 @@ class VideoScript(BaseModel):
     description: str
     tags: list[str]
     scenes: list[Scene]
+
+
+class Lessons(BaseModel):
+    lessons: list[str]
 
 
 # Errors that no amount of retrying will fix: stop and say why instead of looping forever.
@@ -469,22 +731,6 @@ def check_script(script: VideoScript, past_titles=()) -> VideoScript:
     return script
 
 
-def ask_gemini(client, model_name: str, prompt: str, past_titles=()) -> VideoScript:
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt,
-        # No temperature/top_p: Gemini 3.x ignores them (and may reject them in future models).
-        # Variety comes from the random seed and the angle in the prompt.
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=VideoScript,
-        ),
-    )
-    if not response.text:
-        raise ValueError("réponse vide (bloquée ou tronquée)")
-    return check_script(VideoScript.model_validate_json(response.text), past_titles)
-
-
 def discover_gemini_models(client) -> list:
     """Last resort when every configured model is gone: ask the API which Flash models this key can call."""
     skip = ("tts", "image", "live", "audio", "embedding", "robotics", "computer-use", "gemma", "aqa", "transcribe")
@@ -506,20 +752,19 @@ def discover_gemini_models(client) -> list:
     return sorted(found, key=best_first)
 
 
-def generate_script(template: str, analytics: Analytics, niche: str) -> VideoScript:
+def make_gemini_client():
     print("1. Connexion à Gemini...")
-    client = genai.Client(
+    return genai.Client(
         api_key=env("GEMINI_API_KEY"),
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
-    prompt = render_prompt(template, {
-        "performance_report": analytics.report,
-        "niche": niche,
-        "seed": random.randint(1000, 999999),
-    })
-    if SCRIPT_ONLY:
-        print("--- PROMPT ENVOYÉ À GEMINI ---\n" + prompt + "\n--- FIN DU PROMPT ---")
 
+
+def gemini_json(client, prompt: str, schema, validate=None, give_up_after=None):
+    """Ask Gemini for JSON shaped like `schema` (a pydantic model).
+    Tries every model, backs off, honours the server's retry hints and NEVER gives up, unless `give_up_after`
+    (seconds) is set: then it returns None once that time is spent."""
+    started = time.monotonic()
     models = list(GEMINI_MODELS)
     dead = set()  # models that answered 404: they won't come back, so stop asking
     attempt = 0
@@ -535,9 +780,20 @@ def generate_script(template: str, analytics: Analytics, niche: str) -> VideoScr
         for model_name in live:
             print(f"Tentative {attempt + 1} avec le modèle {model_name}...")
             try:
-                script = ask_gemini(client, model_name, prompt, analytics.titles)
-                print("Script optimisé généré avec succès par Gemini !")
-                return script
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    # No temperature/top_p: Gemini 3.x ignores them (and may reject them in future models).
+                    # Variety comes from the random seed and the angle in the prompt.
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=schema,
+                    ),
+                )
+                if not response.text:
+                    raise ValueError("réponse vide (bloquée ou tronquée)")
+                result = schema.model_validate_json(response.text)
+                return validate(result) if validate else result
             except Exception as e:
                 msg = str(e)
                 if any(k in msg.lower() for k in FATAL_GEMINI):
@@ -546,12 +802,95 @@ def generate_script(template: str, analytics: Analytics, niche: str) -> VideoScr
                     dead.add(model_name)
                 print(f"Échec avec {model_name}: {msg[:300]}")
                 wait = max(wait, suggested_delay(msg))
+                if give_up_after is not None and time.monotonic() - started >= give_up_after:
+                    return None
                 time.sleep(1)
 
         delay = max(backoff(attempt), wait)
         attempt += 1
+        if give_up_after is not None and time.monotonic() - started + delay >= give_up_after:
+            return None
         print(f"Gemini indisponible pour le moment — nouvelle tentative dans {delay:.0f}s...")
         time.sleep(delay)
+
+
+def generate_script(template: str, analytics: Analytics, niche: str, memory=None, client=None) -> VideoScript:
+    client = client or make_gemini_client()
+    memory = memory or Memory()
+    prompt = render_prompt(template, {
+        "performance_report": analytics.report,
+        "memory": memory_for_prompt(memory),
+        "niche": niche,
+        "seed": random.randint(1000, 999999),
+    })
+    if SCRIPT_ONLY:
+        print("--- PROMPT ENVOYÉ À GEMINI ---\n" + prompt + "\n--- FIN DU PROMPT ---")
+    past_titles = list(analytics.titles) + [e.get("title", "") for e in memory.entries]
+    script = gemini_json(client, prompt, VideoScript, validate=lambda s: check_script(s, past_titles))
+    print("Script optimisé généré avec succès par Gemini !")
+    return script
+
+
+# ---------------------------------------------------------------------------
+# 1b. Lessons: Gemini reads the results and rewrites the LESSONS section of memory.txt
+# ---------------------------------------------------------------------------
+def clean_lessons(result: Lessons) -> Lessons:
+    items = []
+    for lesson in result.lessons:
+        lesson = _one_line(lesson).lstrip("-•*0123456789.) ").strip()
+        if lesson:
+            items.append(lesson[:240])
+    if len(items) < 2:
+        raise ValueError("moins de 2 leçons exploitables")
+    result.lessons = items[:8]
+    return result
+
+
+def video_log_for_lessons(memory: Memory, analytics: Analytics, limit: int = 15) -> str:
+    lines = []
+    for e in memory.entries[-limit:]:
+        stats = analytics.stats.get(_norm_title(e.get("title", "")))
+        if stats:
+            result = f"{stats[0]:.0f} views/day" + (f", {stats[1]:.1f}% likes" if stats[1] is not None else "")
+        else:
+            result = "too new / no data yet"
+        lines.append(f'- "{e.get("title", "?")}" | {result} | angle: {e.get("angle", "?")} | lines: {e.get("lines", "")}')
+    return "\n".join(lines) or "(no video logged yet)"
+
+
+def maybe_update_lessons(client, memory: Memory, analytics: Analytics) -> bool:
+    """Best effort, about once a day: never holds the video back and never touches the OWNER NOTES."""
+    now = utcnow()
+    if analytics.mature_count < MIN_VIDEOS_FOR_LESSONS:
+        print(f"Leçons : pas assez de vidéos analysées ({analytics.mature_count}/{MIN_VIDEOS_FOR_LESSONS}).")
+        return False
+    last = memory.lessons_updated
+    if last and now - last < timedelta(hours=LESSONS_EVERY_HOURS):
+        print("Leçons : déjà mises à jour récemment, on les garde.")
+        return False
+    if not LESSONS_PROMPT_FILE.is_file():
+        print(f"Leçons : {LESSONS_PROMPT_FILE.name} introuvable, étape ignorée.")
+        return False
+    template = "\n".join(_read_clean_lines(LESSONS_PROMPT_FILE)).strip()
+    if not template:
+        print(f"Leçons : {LESSONS_PROMPT_FILE.name} est vide, étape ignorée.")
+        return False
+
+    prompt = render_prompt(template, {
+        "owner_notes": memory.owner_notes or "(none)",
+        "previous_lessons": memory.lessons or "(none yet)",
+        "performance_report": analytics.report,
+        "video_log": video_log_for_lessons(memory, analytics),
+    })
+    print("Mise à jour des leçons à partir des résultats...")
+    result = gemini_json(client, prompt, Lessons, validate=clean_lessons, give_up_after=LESSONS_GIVE_UP_SEC)
+    if result is None:
+        print("Leçons : Gemini indisponible, on garde les anciennes.")
+        return False
+    memory.sections[LESSONS] = f"// updated: {now:%Y-%m-%dT%H:%M:%SZ}\n" + "\n".join(f"- {l}" for l in result.lessons)
+    save_memory(memory)
+    print("Leçons mises à jour :\n" + "\n".join(f"  - {l}" for l in result.lessons))
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -820,7 +1159,7 @@ def build_video(script: VideoScript, output_path="final_short.mp4"):
 
 
 # ---------------------------------------------------------------------------
-# 6. Upload (YouTube)
+# 6. Upload (YouTube) — private + publishAt: YouTube itself publishes at the exact slot
 # ---------------------------------------------------------------------------
 UPLOAD_ERRORS = {
     "quotaExceeded": "quota de l'API YouTube épuisé pour aujourd'hui, réessaie demain.",
@@ -829,9 +1168,20 @@ UPLOAD_ERRORS = {
 }
 
 
-def upload_to_youtube(script: VideoScript, niche: str, video_path="final_short.mp4"):
+def upload_to_youtube(script: VideoScript, niche: str, publish_at=None, video_path="final_short.mp4"):
+    """Returns (video id, the publish time that was scheduled or None if it went out right away)."""
     print("Envoi de la vidéo sur YouTube...")
     youtube, _ = get_youtube_client()
+
+    status = {"privacyStatus": YT_PRIVACY, "selfDeclaredMadeForKids": False}
+    scheduled = None
+    if publish_at is not None and YT_PRIVACY == "public":
+        if publish_at > utcnow() + timedelta(minutes=2):
+            scheduled = publish_at.astimezone(timezone.utc)
+            status["privacyStatus"] = "private"  # YouTube only accepts publishAt on a private video
+            status["publishAt"] = scheduled.strftime("%Y-%m-%dT%H:%M:%SZ")
+        else:  # a past publishAt would publish immediately anyway: say it instead of hiding it
+            print("ATTENTION : le créneau est passé pendant la création de la vidéo : publication immédiate.")
 
     body = {
         "snippet": {
@@ -840,10 +1190,7 @@ def upload_to_youtube(script: VideoScript, niche: str, video_path="final_short.m
             "tags": script.tags + [niche_label(niche)],  # lets the analytics link this video to its angle
             "categoryId": "23"
         },
-        "status": {
-            "privacyStatus": YT_PRIVACY,
-            "selfDeclaredMadeForKids": False
-        }
+        "status": status
     }
 
     media = MediaFileUpload(video_path, chunksize=8 * 1024 * 1024, resumable=True, mimetype="video/mp4")
@@ -857,10 +1204,19 @@ def upload_to_youtube(script: VideoScript, niche: str, video_path="final_short.m
         raise
 
     print(f"Envoyé avec succès ! ID : {response['id']} (https://youtube.com/shorts/{response['id']})")
-    actual = response.get("status", {}).get("privacyStatus")
-    if actual and actual != YT_PRIVACY:
-        print(f"ATTENTION : demandé '{YT_PRIVACY}' mais YouTube a mis la vidéo en '{actual}'. "
+    answered = response.get("status", {})
+    if scheduled:
+        confirmed = parse_iso(answered.get("publishAt"))
+        if answered.get("privacyStatus") == "private" and confirmed and abs((confirmed - scheduled).total_seconds()) < 60:
+            local = scheduled.astimezone(get_publish_tz())
+            print(f"Programmée : YouTube la publiera tout seul le {local:%Y-%m-%d à %H:%M} ({PUBLISH_TZ}).")
+        else:
+            print("ATTENTION : YouTube n'a pas confirmé la programmation (publishAt absent de sa réponse) : la vidéo "
+                  "risque de rester privée. Un projet API non vérifié force les vidéos en privé.")
+    elif answered.get("privacyStatus") and answered["privacyStatus"] != YT_PRIVACY:
+        print(f"ATTENTION : demandé '{YT_PRIVACY}' mais YouTube a mis la vidéo en '{answered['privacyStatus']}'. "
               "Un projet API non vérifié force les vidéos en privé.")
+    return response["id"], scheduled
 
 
 def main():
@@ -868,6 +1224,7 @@ def main():
     try:
         template = load_prompt_template()  # fail fast, before any network call
         niches = load_niches()
+        memory = load_memory()
 
         try:
             analytics = get_channel_performance(niches)
@@ -877,9 +1234,29 @@ def main():
             print(f"Analyse ignorée : {e}")
             analytics = Analytics()
 
+        slot = None
+        if UPLOAD_ENABLED:
+            slot, free = plan_publish_slot(analytics, memory)
+            if slot is not None:
+                local = slot.astimezone(get_publish_tz())
+                print(f"Prochain créneau de publication : {local:%Y-%m-%d %H:%M} ({PUBLISH_TZ}) = {slot:%H:%M} UTC")
+                if not free:
+                    print("Ce créneau est déjà rempli par une vidéo programmée ou publiée : rien à créer cette fois.")
+                    return
+
         niche, how = pick_niche(niches, analytics.niche_scores)
         print(f"Angle du jour : {niche} ({how})")
-        script_data = generate_script(template, analytics, niche)
+
+        client = make_gemini_client()
+        if UPLOAD_ENABLED:
+            try:
+                maybe_update_lessons(client, memory, analytics)
+            except FatalError:
+                raise
+            except Exception as e:  # the lessons are a bonus, never a reason to skip a video
+                print(f"Leçons ignorées ({type(e).__name__}: {e})")
+
+        script_data = generate_script(template, analytics, niche, memory, client)
         print(f"Titre choisi : {script_data.title}")
 
         if SCRIPT_ONLY:
@@ -891,7 +1268,14 @@ def main():
         if NO_UPLOAD:
             print("NO_UPLOAD : vidéo créée (final_short.mp4) mais pas envoyée.")
             return
-        upload_to_youtube(script_data, niche)
+
+        video_id, publish_at = upload_to_youtube(script_data, niche, slot)
+        try:
+            remember_video(memory, script_data, niche, video_id, publish_at)
+            save_memory(memory)
+            print(f"Mémoire enregistrée dans {MEMORY_FILE.name}.")
+        except Exception as e:
+            print(f"ATTENTION : mémoire non enregistrée ({type(e).__name__}: {e})")
     except FatalError as e:
         print(f"ERREUR FATALE : {e}")
         sys.exit(1)
