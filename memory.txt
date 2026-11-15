@@ -1,0 +1,32 @@
+// ============================================================================
+//  memory.txt — long-term memory of the agent. A normal text file: read it, edit it.
+//  Lines starting with // are ignored.
+//
+//  OWNER NOTES : yours. Read on every run, NEVER modified by the agent. Write rules, taste,
+//                things to avoid ("never joke about X", "more dog videos").
+//  LESSONS     : rewritten by the agent (about once a day) from your results: what works, what doesn't.
+//                Delete or fix any line you disagree with.
+//  VIDEO LOG   : one entry added for every video created (title, angle, every joke, YouTube id,
+//                publish time) so it never repeats itself.
+//  The workflow commits this file after each run, so the memory survives between runs.
+// ============================================================================
+
+=== OWNER NOTES ===
+
+=== LESSONS ===
+// updated: 2026-11-15T11:55:13Z
+- Focus scripts on awkward social situations everyone secretly pretends are normal, which vastly outcompetes all other content angles.
+- Use titles highlighting existential dread, small talk, or embarrassing moments humans try to forget to maximize daily views.
+- Avoid focusing on solo rituals or weird things done alone, as private habits perform much worse than public social failures. (weak evidence)
+- Avoid life hack roast topics, as roasting absurd hacks generates far fewer daily views than judging universal social interactions. (weak evidence)
+
+=== VIDEO LOG ===
+--- video
+created: 2026-11-15T11:56:20Z
+id: fmsd_g24zWg
+publish: 2026-11-15T15:00:00Z
+when: 2026-11-15 16:00 (Africa/Tunis)
+title: Elevator Eye Contact Is Emotional Warfare #shorts
+angle: unspoken rules of elevators, hallways, and waiting rooms
+hook: You enter an elevator and instantly forget how your eyes work?!
+lines: You enter an elevator and instantly forget how your eyes work?! | [sigh] Staring strictly at floor numbers like it's a sacred ritual... | If someone breathes slightly too loud? [groans] Pure existential panic! | Then comes the waiting room! Choosing a seat four chairs away like a coward... | Accidentally making ONE second of eye contact?! [screams] INSTANT DEATH! | ...So you pull out your phone and aggressively scroll through blank apps! | You're all trapped in a silent nightmare and pretending it's fine! | Subscribe before your next floor, or I'll stare back... [laughs]!
