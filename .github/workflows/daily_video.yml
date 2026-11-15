@@ -2,14 +2,35 @@ name: Daily YouTube AI Agent
 
 on:
   schedule:
-    # 06:47 UTC = 7:47 AM Tunisia | 14:47 UTC = 3:47 PM Tunisia
-    # Using minute 47 avoids the top-of-the-hour GitHub queue delay!
-    - cron: '47 6,14 * * *'
-  workflow_dispatch:     # Adds a manual "Run workflow" button in GitHub
+    # YouTube itself publishes each video at exactly 08:00 and 16:00 (Tunisia time), so this workflow only has to
+    # BUILD the video before that. GitHub cron runs in UTC and is best effort (often 10-60 min late, sometimes
+    # dropped), hence ~1h45 of margin plus a backup trigger 30 min later (it does nothing if the slot is filled).
+    #   05:17 UTC = 06:17 Tunisia -> builds the 08:00 video      13:17 UTC = 14:17 Tunisia -> builds the 16:00 video
+    #   05:47 UTC = 06:47 Tunisia -> backup for the 08:00 video  13:47 UTC = 14:47 Tunisia -> backup for the 16:00 video
+    - cron: '17 5,13 * * *'
+    - cron: '47 5,13 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'normal = build + schedule the next slot | no_upload = render only | script_only = just test prompt.txt'
+        type: choice
+        options:
+          - normal
+          - no_upload
+          - script_only
+        default: normal
+
+permissions:
+  contents: write   # lets the last step commit memory.txt
+
+concurrency:
+  group: youtube-agent   # one run at a time: two runs would fight over the publish slots and memory.txt
+  cancel-in-progress: false
 
 jobs:
   create-and-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,4 +55,25 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          SCRIPT_ONLY: ${{ inputs.mode == 'script_only' }}
+          NO_UPLOAD: ${{ inputs.mode == 'no_upload' }}
         run: python agent.py
+
+      - name: Save memory
+        if: always()   # even if a later step failed, never lose what the agent just learned
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f memory.txt ]; then git add memory.txt; fi
+          if git diff --cached --quiet; then
+            echo "Memory unchanged, nothing to commit."
+          else
+            git commit -m "Update memory"
+            pushed=0
+            for attempt in 1 2 3; do
+              if git pull --rebase && git push; then pushed=1; break; fi
+              echo "Push failed (attempt $attempt), retrying..."
+              sleep 5
+            done
+            [ "$pushed" = 1 ] || { echo "Could not push memory.txt"; exit 1; }
+          fi
