@@ -14,10 +14,10 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-15T11:55:13Z
-- Focus scripts on awkward social situations everyone secretly pretends are normal, which vastly outcompetes all other content angles.
-- Use titles highlighting existential dread, small talk, or embarrassing moments humans try to forget to maximize daily views.
-- Avoid focusing on solo rituals or weird things done alone, as private habits perform much worse than public social failures. (weak evidence)
+// updated: 2026-11-16T11:28:42Z
+- Focus scripts on awkward social situations everyone secretly pretends are normal, as this angle consistently drives the highest daily view counts.
+- Craft titles featuring phrases like existential dread, small talk, or embarrassing moments humans pretend never happened to maximize daily views.
+- Avoid focusing on solo rituals or weird things done alone, as private habits perform significantly worse than public social failures. (weak evidence)
 - Avoid life hack roast topics, as roasting absurd hacks generates far fewer daily views than judging universal social interactions. (weak evidence)
 
 === VIDEO LOG ===
@@ -40,3 +40,13 @@ title: Hallway Eye Contact Is Pure Torture #shorts
 angle: unspoken rules of elevators, hallways, and waiting rooms
 hook: Walking towards someone in a long hallway is biological TORTURE!
 lines: Walking towards someone in a long hallway is biological TORTURE! | Do you look at them now?! Or pretend your shoe is INTERESTING?! | Fifty feet away... [sigh] too early to smile, too late to turn around! | So you stare intensely at a blank wall like a normal sane human! | Ten feet left! [groans] Time for the panic phone check! | Then comes the awkward dodge dance... left! Right! [screams] PURE CHAOS! | You both mumble... [pause] 'sorry' and sprint away in total shame! | Subscribe right now, or I will force you into an infinite hallway loop!
+
+--- video
+created: 2026-11-16T11:31:14Z
+id: ZUeHqFIdWg4
+publish: 2026-11-16T15:00:00Z
+when: 2026-11-16 16:00 (Africa/Tunis)
+title: Why Sleeping Is Pure Existential Dread #shorts
+angle: absurd shower thoughts about everyday human habits
+hook: You literally have to PRETEND to be dead to fall asleep?! [screams]
+lines: You literally have to PRETEND to be dead to fall asleep?! [screams] | Think about it... [pause] you lie completely motionless like a total corpse! | If you twitch ONE TOE? [groans] Your sleep clock resets back to zero! | Then your brain suddenly plays a horrific cringe memory from ten years ago! | Why are you replaying that high school hallway trip right now?! [sigh] | You stare at the dark ceiling in pure existential dread until morning! | Then your alarm screams and you wake up even more exhausted! [laughs] | Subscribe right now, or I'll haunt your midnight shower thoughts forever!
