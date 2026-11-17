@@ -14,8 +14,8 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-16T11:28:42Z
-- Focus scripts on awkward social situations everyone secretly pretends are normal, as this angle consistently drives the highest daily view counts.
+// updated: 2026-11-17T14:01:08Z
+- Focus scripts entirely on awkward social situations everyone secretly pretends are normal, as this angle consistently drives the highest daily view counts.
 - Craft titles featuring phrases like existential dread, small talk, or embarrassing moments humans pretend never happened to maximize daily views.
 - Avoid focusing on solo rituals or weird things done alone, as private habits perform significantly worse than public social failures. (weak evidence)
 - Avoid life hack roast topics, as roasting absurd hacks generates far fewer daily views than judging universal social interactions. (weak evidence)
@@ -50,3 +50,13 @@ title: Why Sleeping Is Pure Existential Dread #shorts
 angle: absurd shower thoughts about everyday human habits
 hook: You literally have to PRETEND to be dead to fall asleep?! [screams]
 lines: You literally have to PRETEND to be dead to fall asleep?! [screams] | Think about it... [pause] you lie completely motionless like a total corpse! | If you twitch ONE TOE? [groans] Your sleep clock resets back to zero! | Then your brain suddenly plays a horrific cringe memory from ten years ago! | Why are you replaying that high school hallway trip right now?! [sigh] | You stare at the dark ceiling in pure existential dread until morning! | Then your alarm screams and you wake up even more exhausted! [laughs] | Subscribe right now, or I'll haunt your midnight shower thoughts forever!
+
+--- video
+created: 2026-11-17T14:04:48Z
+id: KznD2eBwqKQ
+publish: 2026-11-17T15:00:00Z
+when: 2026-11-17 16:00 (Africa/Tunis)
+title: Public Waving Confusion Is A Soul Destroyer #shorts
+angle: embarrassing micro-moments we all experience in public
+hook: Waving enthusiastically at a stranger?! [screams] TOTAL SOUL DEATH!
+lines: Waving enthusiastically at a stranger?! [screams] TOTAL SOUL DEATH! | You see an arm go up... [pause] and your brain completely shorts out! | You throw a massive goofy grin across the street... [groans]! | Only to realize they were waving at someone else entirely behind you! | [sigh] Now you have to pretend you were just scratching your ear! | Or aggressively stretch your arm like a total lunatic! | Subscribe right now, or I will force you to wave at every lamp post! [laughs]
