@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-18T14:11:04Z
-- Focus scripts entirely on awkward social interactions that humans perform in public while pretending they are normal.
-- Structure every script to highlight the intense internal panic or 'emotional warfare' resulting from minor, everyday social blunders.
-- Use titles that explicitly combine relatable social pain points with terms like existential dread, awkward moments, or pretend they never happened.
-- Avoid content centered on solo, private habits or home-based rituals, as these yield significantly lower engagement than public-facing discomfort.
-- Avoid life hacks, roasting products, or generic adulting rants, as these topics fail to tap into the high-performing social anxiety niche. (weak evidence)
+// updated: 2026-11-19T14:30:22Z
+- Prioritize scripts about the unspoken rules and psychological agony of shared public spaces like hallways, elevators, and waiting rooms for maximum engagement.
+- Structure every scene as an escalating internal panic resulting from a specific, relatable social blunder that people try to hide.
+- Use titles that pair intense emotional triggers like 'existential dread,' 'torture,' or 'nightmare' with mundane public situations to grab attention.
+- Avoid content about private, home-based rituals or solo activities as these consistently underperform compared to public-facing social discomfort.
+- Avoid generic life hacks, product roasts, or abstract rants about modern adulthood to maintain focus on the high-performing social anxiety niche (weak evidence).
 
 === VIDEO LOG ===
 --- video
@@ -81,3 +81,13 @@ title: The Public Escalator Panic Is A Nightmare #shorts
 angle: embarrassing micro-moments we all experience in public
 hook: Stepping onto a moving escalator feels like a high-stakes life or death gamble?!
 lines: Stepping onto a moving escalator feels like a high-stakes life or death gamble?! | You miss the first step? [screams] YOUR ENTIRE LIFE FLASHES BEFORE YOUR EYES! | Then you reach the top! [pause] Will you trip? Will you faceplant?! | Your brain screams: LIFT YOUR FEET! [groans] YOU LOOK LIKE A STIFF ROBOT! | Everyone is watching your awkward shuffle! [sigh] PRETEND IT IS TOTALLY NORMAL! | You reach the end and hop off like a panicked baby deer! | Why is walking on moving metal so emotionally taxing?! [laughs] IT IS PURE CHAOS! | SUBSCRIBE OR I WILL LOCK YOU ON AN ESCALATOR THAT ONLY GOES DOWN FOREVER!
+
+--- video
+created: 2026-11-19T14:33:22Z
+id: fIC3ipXDkJM
+publish: 2026-11-19T15:00:00Z
+when: 2026-11-19 16:00 (Africa/Tunis)
+title: Waiting Room Eye Contact Is Total Chaos #shorts
+angle: awkward social situations everyone secretly pretends are normal
+hook: Entering a quiet waiting room feels like stepping onto a live minefield?!
+lines: Entering a quiet waiting room feels like stepping onto a live minefield?! | You must choose a seat as far away from humanity as possible... [sigh] | Then someone sits right next to you when ten other chairs are empty?! [groans] | Now you both stare straight ahead like statues possessed by pure dread! | Did that cough mean they are judging your outfit?! [screams] PURE PANIC! | You violently pull out your phone to scroll through a completely blank screen! | Subscribe right now, or I will make you sit in the waiting room forever! [laughs]
