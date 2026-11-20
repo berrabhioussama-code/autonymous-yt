@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-19T14:30:22Z
-- Prioritize scripts about the unspoken rules and psychological agony of shared public spaces like hallways, elevators, and waiting rooms for maximum engagement.
-- Structure every scene as an escalating internal panic resulting from a specific, relatable social blunder that people try to hide.
-- Use titles that pair intense emotional triggers like 'existential dread,' 'torture,' or 'nightmare' with mundane public situations to grab attention.
-- Avoid content about private, home-based rituals or solo activities as these consistently underperform compared to public-facing social discomfort.
-- Avoid generic life hacks, product roasts, or abstract rants about modern adulthood to maintain focus on the high-performing social anxiety niche (weak evidence).
+// updated: 2026-11-20T14:07:12Z
+- Prioritize topics focused on the unspoken rules of shared public spaces like elevators, hallways, and waiting rooms for maximum daily views.
+- Structure scenes around an escalating internal panic caused by relatable social awkwardness and forced eye contact with strangers in public.
+- Use dramatic titles that pair intense emotional triggers like 'Emotional Warfare', 'Existential Dread', or 'Torture' with mundane public situations.
+- Avoid topics about private home rituals, solo activities, or sleep habits, which perform poorly compared to public social anxiety.
+- Avoid generic life hacks, abstract adulting complaints, or phone roasts, as broad lifestyle commentary consistently attracts minimal engagement.
 
 === VIDEO LOG ===
 --- video
@@ -101,3 +101,13 @@ title: The Public Public Restroom Door Panic #shorts
 angle: embarrassing micro-moments we all experience in public
 hook: PULLING A PUSH DOOR IN PUBLIC IS ABSOLUTE SOUL DEATH?!
 lines: PULLING A PUSH DOOR IN PUBLIC IS ABSOLUTE SOUL DEATH?! | You yank the handle with total unwarranted confidence... [sigh] | It doesn't budge an inch! [groans] The door mocks your weakness! | Twenty strangers are staring at your absolute failure to enter a room! | Do you pretend you meant to lock it?! [screams] PURE PANIC! | You casually shove it open and scurry away like a terrified rat! | Subscribe right now, or I will glue every public door shut forever! [laughs]
+
+--- video
+created: 2026-11-20T14:10:04Z
+id: JXuaNM7rv8c
+publish: 2026-11-20T15:00:00Z
+when: 2026-11-20 16:00 (Africa/Tunis)
+title: The Public Water Fountain Slurp Of Doom #shorts
+angle: unspoken rules of elevators, hallways, and waiting rooms
+hook: DRINKING FROM A PUBLIC WATER FOUNTAIN IS ABSOLUTE SOCIETAL SUICIDE?!
+lines: DRINKING FROM A PUBLIC WATER FOUNTAIN IS ABSOLUTE SOCIETAL SUICIDE?! | You press the button... [pause] and it shoots water straight into your eyeball?! | [groans] Now you are choking and drowning like a fish out of water! | And you can hear someone waiting directly behind you breathing heavily... [sigh] | Do you wipe your dripping chin?! [screams] PURE PANIC! | You stumble away blindly while spitting half a gallon of tap water everywhere! | Subscribe right now, or I will turn every water fountain into hot lava! [laughs]
