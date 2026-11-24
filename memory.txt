@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-22T13:25:51Z
-- Prioritize topics focused on the unspoken rules of shared public spaces like elevators, hallways, and waiting rooms for maximum daily views.
-- Structure scenes around an escalating internal panic caused by relatable social awkwardness and forced eye contact with strangers in public.
-- Use dramatic titles pairing intense emotional triggers like 'Emotional Warfare', 'Existential Dread', or 'Torture' with mundane public situations.
-- Avoid topics about private home rituals, solo activities, or sleep habits, which perform poorly compared to public social anxiety.
-- Avoid generic life hacks, abstract adulting complaints, or phone roasts, as broad lifestyle commentary consistently attracts minimal engagement.
+// updated: 2026-11-24T15:57:52Z
+- Prioritize topics focused on awkward social interactions and unspoken rules in shared public spaces like elevators, hallways, and waiting rooms.
+- Structure scenes around an escalating internal panic, fake phone scrolling, and intense eye-contact tension with nearby strangers.
+- Pair hyper-dramatic trigger terms like Emotional Warfare, Existential Dread, or Absolute Hell with mundane public situations in video titles.
+- Avoid topics focused on private home rituals, sleep habits, or solo activities, which perform poorly compared to public social anxiety.
+- Avoid broad lifestyle commentary, generic adulting complaints, life hacks, and phone roasts, as they consistently fail to gain traction.
 
 === VIDEO LOG ===
 --- video
@@ -161,3 +161,13 @@ title: Tripping On Nothing Is Emotional Warfare #shorts
 angle: embarrassing micro-moments we all experience in public
 hook: TRIPPING ON ABSOLUTELY NOTHING IN PUBLIC IS TOTAL SOUL DEATH?! [screams]
 lines: TRIPPING ON ABSOLUTELY NOTHING IN PUBLIC IS TOTAL SOUL DEATH?! [screams] | You are walking like a confident model... [pause] THEN BAM! | Your foot catches an invisible demon on a flat sidewalk! [groans] | You do a frantic five-step stumble just to survive! [sigh] | Then you immediately turn around and glare intensely at the floor?! | Pretending an imaginary crack personally attacked your shoe! [screams] PURE LIES! | Ten strangers saw your pathetic fight against gravity! [groans] | Subscribe right now, or I will trip your feet every ten steps forever! [laughs]
+
+--- video
+created: 2026-11-24T15:59:30Z
+id: 9j6S8tgJQ5s
+publish: 2026-11-25T07:00:00Z
+when: 2026-11-25 08:00 (Africa/Tunis)
+title: Elevator Standing Rules Are Psychological Warfare #shorts
+angle: unspoken rules of elevators, hallways, and waiting rooms
+hook: ENTERING AN ELEVATOR REQUIRES IMMEDIATE COMPLIANCE WITH UNWRITTEN LAWS?! [screams]
+lines: ENTERING AN ELEVATOR REQUIRES IMMEDIATE COMPLIANCE WITH UNWRITTEN LAWS?! [screams] | TWO PEOPLE MUST STAND IN OPPOSITE CORNERS AT ALL TIMES! [sigh] | A THIRD PERSON ENTERS... [pause] AND THE EQUILIBRIUM IS COMPLETELY DESTROYED! [groans] | EVERYONE DOES THE AWKWARD FLUID DYNAMICS RE-POSITIONING SHUFFLE! [screams] | NOW YOU ALL STARE INTENSELY AT THE GLOWING FLOOR NUMBERS! [sigh] | IF ANYONE DARES SAY A SINGLE WORD... [pause] PURE EXISTENTIAL DESTRUCTION! [groans] | WHY ARE ELEVATORS SILENT BOXES OF HUMAN ANXIETY?! [laughs] | SUBSCRIBE RIGHT NOW, OR I WILL MAKE YOU FACE THE BACK WALL FOREVER! [laughs]
