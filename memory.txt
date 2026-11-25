@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-24T15:57:52Z
-- Prioritize topics focused on awkward social interactions and unspoken rules in shared public spaces like elevators, hallways, and waiting rooms.
-- Structure scenes around an escalating internal panic, fake phone scrolling, and intense eye-contact tension with nearby strangers.
-- Pair hyper-dramatic trigger terms like Emotional Warfare, Existential Dread, or Absolute Hell with mundane public situations in video titles.
-- Avoid topics focused on private home rituals, sleep habits, or solo activities, which perform poorly compared to public social anxiety.
-- Avoid broad lifestyle commentary, generic adulting complaints, life hacks, and phone roasts, as they consistently fail to gain traction.
+// updated: 2026-11-25T15:43:50Z
+- Focus topics on unspoken social rules in shared public spaces like elevators, hallways, and waiting rooms over general daily routines.
+- Center scenes on intense eye-contact tension, escalating internal panic, and fake phone scrolling to avoid interaction.
+- Pair hyper-dramatic terms like Emotional Warfare, Existential Dread, or Absolute Hell with mundane public situations in titles.
+- Avoid solo activities, private home rituals, sleep habits, and morning routines, which consistently fail to generate views.
+- Avoid broad lifestyle commentary, adulting complaints, life hacks, and phone roasts, as they generate negligible daily views.
 
 === VIDEO LOG ===
 --- video
@@ -171,3 +171,13 @@ title: Elevator Standing Rules Are Psychological Warfare #shorts
 angle: unspoken rules of elevators, hallways, and waiting rooms
 hook: ENTERING AN ELEVATOR REQUIRES IMMEDIATE COMPLIANCE WITH UNWRITTEN LAWS?! [screams]
 lines: ENTERING AN ELEVATOR REQUIRES IMMEDIATE COMPLIANCE WITH UNWRITTEN LAWS?! [screams] | TWO PEOPLE MUST STAND IN OPPOSITE CORNERS AT ALL TIMES! [sigh] | A THIRD PERSON ENTERS... [pause] AND THE EQUILIBRIUM IS COMPLETELY DESTROYED! [groans] | EVERYONE DOES THE AWKWARD FLUID DYNAMICS RE-POSITIONING SHUFFLE! [screams] | NOW YOU ALL STARE INTENSELY AT THE GLOWING FLOOR NUMBERS! [sigh] | IF ANYONE DARES SAY A SINGLE WORD... [pause] PURE EXISTENTIAL DESTRUCTION! [groans] | WHY ARE ELEVATORS SILENT BOXES OF HUMAN ANXIETY?! [laughs] | SUBSCRIBE RIGHT NOW, OR I WILL MAKE YOU FACE THE BACK WALL FOREVER! [laughs]
+
+--- video
+created: 2026-11-25T15:48:08Z
+id: vrAlbsrWWJI
+publish: 2026-11-26T07:00:00Z
+when: 2026-11-26 08:00 (Africa/Tunis)
+title: Pedestrian Button Spamming Is Emotional Warfare #shorts
+angle: absurd shower thoughts about everyday human habits
+hook: PRESSING A CROSSWALK BUTTON FIFTY TIMES DOES NOT MAKE TRAFFIC STOP FASTER?! [screams]
+lines: PRESSING A CROSSWALK BUTTON FIFTY TIMES DOES NOT MAKE TRAFFIC STOP FASTER?! [screams] | You slam that tiny metal circle like your life depends on it! [groans] | Three strangers arrive... [pause] AND THEY ALSO AGGRESSIVELY MASH THE BUTTON! [sigh] | As if the computer chip inside suddenly cares about your personal impatience! [screams] | Now everyone stares at the red hand symbol in agonizing silence... [groans] PURE DREAD! | Do you push it ONE MORE TIME to show total dominance?! [sigh] | You finally cross... [pause] BUT THE TRAFFIC WAS ALREADY STOPPED ANYWAY! [laughs] | Subscribe right now, or I will replace every crosswalk button with a spider! [laughs]
