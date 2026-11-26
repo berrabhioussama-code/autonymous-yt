@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-25T15:43:50Z
-- Focus topics on unspoken social rules in shared public spaces like elevators, hallways, and waiting rooms over general daily routines.
-- Center scenes on intense eye-contact tension, escalating internal panic, and fake phone scrolling to avoid interaction.
-- Pair hyper-dramatic terms like Emotional Warfare, Existential Dread, or Absolute Hell with mundane public situations in titles.
-- Avoid solo activities, private home rituals, sleep habits, and morning routines, which consistently fail to generate views.
-- Avoid broad lifestyle commentary, adulting complaints, life hacks, and phone roasts, as they generate negligible daily views.
+// updated: 2026-11-26T15:25:37Z
+- Focus topics exclusively on unspoken social rules and spatial panic in elevators, hallways, and waiting rooms rather than broad lifestyle commentary.
+- Center all scenes on intense eye contact avoidance, internal panic, fake phone scrolling, and awkward public geometry.
+- Pair hyper-dramatic terms like Emotional Warfare, Existential Dread, and Absolute Hell with mundane public situations in all titles.
+- Avoid solo activities, private home rituals, sleep habits, and morning routines, which consistently generate negligible daily views.
+- Avoid broad lifestyle complaints, adulting scams, life hacks, and phone roasts, as they fail to attract daily views.
 
 === VIDEO LOG ===
 --- video
@@ -181,3 +181,13 @@ title: Pedestrian Button Spamming Is Emotional Warfare #shorts
 angle: absurd shower thoughts about everyday human habits
 hook: PRESSING A CROSSWALK BUTTON FIFTY TIMES DOES NOT MAKE TRAFFIC STOP FASTER?! [screams]
 lines: PRESSING A CROSSWALK BUTTON FIFTY TIMES DOES NOT MAKE TRAFFIC STOP FASTER?! [screams] | You slam that tiny metal circle like your life depends on it! [groans] | Three strangers arrive... [pause] AND THEY ALSO AGGRESSIVELY MASH THE BUTTON! [sigh] | As if the computer chip inside suddenly cares about your personal impatience! [screams] | Now everyone stares at the red hand symbol in agonizing silence... [groans] PURE DREAD! | Do you push it ONE MORE TIME to show total dominance?! [sigh] | You finally cross... [pause] BUT THE TRAFFIC WAS ALREADY STOPPED ANYWAY! [laughs] | Subscribe right now, or I will replace every crosswalk button with a spider! [laughs]
+
+--- video
+created: 2026-11-26T15:26:56Z
+id: Q6JgfvcCOI0
+publish: 2026-11-27T07:00:00Z
+when: 2026-11-27 08:00 (Africa/Tunis)
+title: Grocery Self Checkout Malfunctions Are Absolute Hell #shorts
+angle: why adulting and modern daily routines are basically a giant scam
+hook: GROCERY SELF CHECKOUT MACHINES ARE ARMED ROBBERS OF YOUR SOUL?! [screams]
+lines: GROCERY SELF CHECKOUT MACHINES ARE ARMED ROBBERS OF YOUR SOUL?! [screams] | UNEXPECTED ITEM IN THE BAGGING AREA... [sigh] AGAIN?! | YOU STAND FROZEN WHILE A BLUE LIGHT FLASHES YOUR FAILURE TO THE WORLD?! [groans] | TEN ANGRY HUMANS ARE STARING AT YOUR TOMATO BARCODE STRUGGLE?! [pause] | DO YOU ABANDON THE CART AND RUN FOR YOUR LIFE?! [screams] PURE PANIC! | AN EMPLOYEE ARRIVES TO JUDGE YOUR ENTIRE EXISTENCE WITH ONE TAP?! [sigh] | SUBSCRIBE RIGHT NOW... [pause] OR I WILL LOCK YOU IN THE PRODUCE SCALE FOREVER! [laughs]
