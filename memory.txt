@@ -14,12 +14,12 @@
 === OWNER NOTES ===
 
 === LESSONS ===
-// updated: 2026-11-26T15:25:37Z
-- Focus topics exclusively on unspoken social rules and spatial panic in elevators, hallways, and waiting rooms rather than broad lifestyle commentary.
-- Center all scenes on intense eye contact avoidance, internal panic, fake phone scrolling, and awkward public geometry.
-- Pair hyper-dramatic terms like Emotional Warfare, Existential Dread, and Absolute Hell with mundane public situations in all titles.
-- Avoid solo activities, private home rituals, sleep habits, and morning routines, which consistently generate negligible daily views.
-- Avoid broad lifestyle complaints, adulting scams, life hacks, and phone roasts, as they fail to attract daily views.
+// updated: 2026-11-27T15:13:13Z
+- Focus video topics on unspoken social rules in elevators, waiting rooms, and public spaces, which average over 27 views per day.
+- Center scenes on acute public social panic, eye contact avoidance, and physical stumbles rather than solo activities or private routines.
+- Pair hyper-dramatic terms like Emotional Warfare, Existential Dread, and Total Chaos with mundane public situations in video titles.
+- Avoid solo habits, sleeping routines, private rituals, and home activities, which consistently generate fewer than 6 daily views.
+- Avoid general adulting scams, modern daily grind roasts, and texting commentary, as these topics average only 1 view per day.
 
 === VIDEO LOG ===
 --- video
@@ -191,3 +191,13 @@ title: Grocery Self Checkout Malfunctions Are Absolute Hell #shorts
 angle: why adulting and modern daily routines are basically a giant scam
 hook: GROCERY SELF CHECKOUT MACHINES ARE ARMED ROBBERS OF YOUR SOUL?! [screams]
 lines: GROCERY SELF CHECKOUT MACHINES ARE ARMED ROBBERS OF YOUR SOUL?! [screams] | UNEXPECTED ITEM IN THE BAGGING AREA... [sigh] AGAIN?! | YOU STAND FROZEN WHILE A BLUE LIGHT FLASHES YOUR FAILURE TO THE WORLD?! [groans] | TEN ANGRY HUMANS ARE STARING AT YOUR TOMATO BARCODE STRUGGLE?! [pause] | DO YOU ABANDON THE CART AND RUN FOR YOUR LIFE?! [screams] PURE PANIC! | AN EMPLOYEE ARRIVES TO JUDGE YOUR ENTIRE EXISTENCE WITH ONE TAP?! [sigh] | SUBSCRIBE RIGHT NOW... [pause] OR I WILL LOCK YOU IN THE PRODUCE SCALE FOREVER! [laughs]
+
+--- video
+created: 2026-11-27T15:15:31Z
+id: 7VkB9M59y3s
+publish: 2026-11-28T07:00:00Z
+when: 2026-11-28 08:00 (Africa/Tunis)
+title: Private Room Mirror Conversations Are Total Madness #shorts
+angle: weird things people do when they think nobody is watching
+hook: PRACTICING ARGUMENTS IN THE MIRROR WHEN NOBODY IS WATCHING IS PURE INSANITY?! [screams]
+lines: PRACTICING ARGUMENTS IN THE MIRROR WHEN NOBODY IS WATCHING IS PURE INSANITY?! [screams] | You are suddenly dropping karate chops... [pause] fighting an imaginary boss! [sigh] | Then you mouth the ultimate comeback... [groans] three hours too late! [screams] | Why are you making intense face expressions at your own glass reflection?! [sigh] | A family member walks past the bedroom door... [pause] TOTAL FREEZE MODE! [screams] | You immediately pretend you were just searching for a dropped contact lens?! [groans] | Subscribe right now... [pause] or I will turn your bedroom mirror into a portal! [laughs]
